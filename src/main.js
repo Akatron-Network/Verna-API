@@ -16,9 +16,10 @@ process.on('uncaughtException', function (err) {
 
 
 async function test() {
-  let u = new User('Ranork22')
-  await u.initDetails()
-  console.log(u.getDetails());
+  let new_user = await User.createUser({
+    username: "TEST_USER",
+    password: "12345678a"
+  })
 }
 
 test()

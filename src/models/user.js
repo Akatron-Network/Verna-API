@@ -40,4 +40,11 @@ export class User {
     if (this.user_details) return this.user_details
     else throw new Error('User details not initialized. first use initDetails() (async)')
   }
+  
+  async removeUser() {
+    if (!this.user_details) await this.initDetails()
+    return await prisma.User.delete({
+      where: { username: this.username }
+    })
+  }
 }
