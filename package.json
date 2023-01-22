@@ -1,0 +1,22 @@
+{
+  "name": "redtape-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cd src && babel-node main.js"
+  },
+  "author": "Akatron Network",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/node": "^7.20.7",
+    "@prisma/client": "^4.9.0",
+    "es6": "^0.0.7",
+    "express": "^4.18.2",
+    "jsonschema": "^1.4.1",
+    "prisma": "^4.9.0"
+  }
+}
