@@ -1,7 +1,7 @@
 import express from 'express'
-import { User } from './models/user.js'
 import { getDateString, getTimeString } from './libraries/misc.js'
-import bcrypt from 'bcrypt'
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 const app = express()
 
@@ -17,9 +17,7 @@ process.on('uncaughtException', function (err) {
 
 
 async function test() {
-  let hashpass = bcrypt.hashSync('123', 10)
-  console.log(hashpass);
-  console.log(bcrypt.compareSync('123', hashpass));
+  
 }
 
 test()

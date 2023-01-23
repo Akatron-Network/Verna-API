@@ -1,3 +1,4 @@
 
-
-export var auth_tokens = []
+export class Globals {
+  static auth_tokens = {}
+}
