@@ -1,13 +1,12 @@
-
 //* Gives Date as yyyy-mm-dd
 //. Returns string
 export function getDateString () {
   var now = new Date();
-  var dd = String(now.getDate()).padStart(2, '0');
-  var mm = String(now.getMonth() + 1).padStart(2, '0'); //January is 0!
-  var yyyy = now.getFullYear();
+  var dd = String(now.getDate()).padStart(2, '0');        //. day
+  var mm = String(now.getMonth() + 1).padStart(2, '0');   //. month
+  var yyyy = now.getFullYear();                           //. year
 
-  return yyyy + "-" + mm + "-" + dd
+  return yyyy + "-" + mm + "-" + dd                       //r YYYY-MM-DD
 }
 
 
@@ -15,11 +14,11 @@ export function getDateString () {
 //. Returns string
 export function getTimeString () {
   var now = new Date();
-  var hour = String(now.getHours()).padStart(2, '0')
-  var min = String(now.getMinutes()).padStart(2, '0')
-  var sec = String(now.getSeconds()).padStart(2, '0')
+  var hour = String(now.getHours()).padStart(2, '0')      //. hour
+  var min = String(now.getMinutes()).padStart(2, '0')     //. minute
+  var sec = String(now.getSeconds()).padStart(2, '0')     //. second
 
-  return hour + ":" + min + ":" + sec
+  return hour + ":" + min + ":" + sec                     //r HH:MM:SS
 }
 
 //-- Json Key Control
@@ -34,3 +33,4 @@ export function jsonKeyControl(json_object, required_keys, forbidden_keys) {
       throw new Error(k + ' cannot use.')               //! throw error
   }
 }
+

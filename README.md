@@ -11,3 +11,4 @@ RedTape's Backend Server
 - Jsonschema:1.4.1
 - Jest:29.3.1
 - Babel-Jest:29.3.1
+- BCrypt:5.1
