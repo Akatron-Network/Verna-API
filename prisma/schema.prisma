@@ -20,5 +20,5 @@ model User {
   register_date       DateTime    @default(now())
   register_ip         String?
   lastlogin_date      DateTime?
-  lastlogin_ip        DateTime?
+  lastlogin_ip        String?
 }

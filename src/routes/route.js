@@ -1,17 +1,95 @@
+import { Globals } from "../libraries/globals.js";
 import { Response } from "../libraries/response.js";
-import { Route_Login } from "./auth.js"
+import bodyParser from 'body-parser'
+
+
+//-- Route Registration
+
+import { Route_Login, Route_Register } from "./auth.js";      //.  AUTH.js
+
+//* Route registerer
+//. using when app starts in main.js
+export function registerAllRoutes(app) {
+  new Route_Login().registerRoute(app);
+  new Route_Register().registerRoute(app);
+
+  //! Add route registirations here!
+}
+
+
+//-- Route parent class
 
 export class Route {
 
   constructor(url, name, description) {
-    this.url = url
-    this.name = name
-    this.description = description
+    this.url = url                      //. 0.0.0.0/url
+    this.name = name                    //. name of the route
+    this.description = description      //. description of the route
   }
 
-  getRequestBody(req) {
+  //* Route methods
+  methods = {
+    "GET":     async (res, user, data) => await this.emptyMethod(res, user, data),
+    "POST":    async (res, user, data) => await this.emptyMethod(res, user, data),
+    "PUT":     async (res, user, data) => await this.emptyMethod(res, user, data),
+    "DELETE":  async (res, user, data) => await this.emptyMethod(res, user, data)
+  }
+
+  //* Method setter
+  setMethod(method, func) { this.methods[method] = func }
+
+  //* Empty method function
+  async emptyMethod(res, data) { return Response.error(res, 'Method not found') }
+
+  //* Route method permissions
+  permissions = {
+    "GET":    {
+      login: false,
+      permission: undefined
+    },
+    "POST":   {
+      login: false,
+      permission: undefined
+    },
+    "PUT":    {
+      login: false,
+      permission: undefined
+    },
+    "DELETE": {
+      login: false,
+      permission: undefined
+    },
+  }
+
+  //* Permission setter
+  setPermission(method, perm) { this.permissions[method] = perm }
+
+
+  //* Route registerer (use in registerAllRoutes function)
+  registerRoute(app) {
+    app.all(this.url, bodyParser.json(), async (req, res, next) => {
+      try { await this.router(req, res) } 
+      catch (e) { console.error(e.stack); Response.error(res, e.message) }
+    })
+  }
+
+  //* Route activator (using in registerRoute function)
+  async router(req, res) {
+    let perms = this.permissions[req.method]
+    let method = this.methods[req.method]
+
+    let user = (perms.login) ? Route.getUser(req) : undefined
+
+    await method(res, user, Route.getRequestBody(req))
+  }
+
+
+
+  //-- Static methods
+
+  //* Get body of the request
+  static getRequestBody(req) {
     var method = req.method
-  
     if (method === 'GET') { 
       if (req.query.body) { return JSON.parse(req.query.body) }
       else if (Object.keys(req.query).length > 0) { return req.query }
@@ -19,33 +97,13 @@ export class Route {
     return req.body
   }
 
-
-  methods = {
-    "GET":     (req, res) => this.emptyMethod(req, res, getRequestBody(req)),
-    "POST":    (req, res) => this.emptyMethod(req, res, getRequestBody(req)),
-    "PUT":     (req, res) => this.emptyMethod(req, res, getRequestBody(req)),
-    "DELETE":  (req, res) => this.emptyMethod(req, res, getRequestBody(req))
+  //* Get user from token in request header
+  static getUser(req) {
+    let token = req.headers.Token || req.headers.token
+    let user = Globals.auth_tokens[token]
+    if (!user) throw new Error('User not authorized')
+    return user
   }
-
-  setMethod(method, func) { this.methods[method] = func }
-
-  emptyMethod(req, res, body) { Response.error(res, 'Method not found') }
-
-  permissions = {
-    "GET":    undefined,
-    "POST":   undefined,
-    "PUT":    undefined,
-    "DELETE": undefined,
-  }
-
-  setPermission(method, perm) { this.permissions[method] = perm }
-
-  registerRoute(app) {
-    app.all(this.url, (req, res, next) => {
-      this.methods[req.method](req, res);
-    })
-  }
-
-
 
 }
+
