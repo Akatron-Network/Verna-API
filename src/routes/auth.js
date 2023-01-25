@@ -1,9 +1,15 @@
-import { Response } from "../libraries/response.js";
 import { Route } from "./route.js";
+import { Response } from "../libraries/response.js";
 import { User } from "../models/user.js";
-import { Globals } from "../libraries/globals.js";
 
-//-- Get/Remove user token
+
+/* //-- Get/Remove user token
+  This class is used to handle the login and logout for a user. It extends the Route class, 
+  which allows it to register route info and methods with permissions. The get() method handles 
+  logging in a user by taking in the request, user, and body parameters. It then uses the User 
+  class to log in the user with their ip address and body information. The del() method handles 
+  logging out a user by using the User class's logout() method.
+*/
 export class Route_Login extends Route {
   constructor() {
     //* Register the route info
@@ -17,7 +23,7 @@ export class Route_Login extends Route {
 
   //* Login
   async get(res, user, body) {
-    let ip = res.req.ip.replaceAll('::ffff:', '')
+    let ip = res.req.ip.replace(/::ffff:/, '')
     let usr = await User.login({...body, ip})
     
     return Response.success(res, usr)
@@ -31,7 +37,13 @@ export class Route_Login extends Route {
 }
 
 
-//-- Create new user
+/* //-- Create new user
+  This class is used to register a route for the application. It extends the Route class 
+  and sets up a route for '/register' with the title 'Create new user'. It also sets up 
+  two methods, POST and DELETE, and sets the permission for DELETE to require a login. 
+  The post method creates a new user with the given body and register_ip, while the delete 
+  method removes an existing user.
+*/
 export class Route_Register extends Route {
   constructor() {
     //* Register the route info
@@ -45,8 +57,8 @@ export class Route_Register extends Route {
 
   //* Register
   async post(res, user, body) {
-    let register_ip = res.req.ip.replaceAll('::ffff:', '')
-    let usr = await User.createUser({...body, register_ip})
+    let register_ip = res.req.ip.replace(/::ffff:/, '')
+    let usr = await User.create({...body, register_ip})
 
     return Response.success(res, usr)
   }

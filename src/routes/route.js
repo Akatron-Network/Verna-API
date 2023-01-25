@@ -3,20 +3,6 @@ import { Response } from "../libraries/response.js";
 import bodyParser from 'body-parser'
 
 
-//-- Route Registration
-
-import { Route_Login, Route_Register } from "./auth.js";      //.  AUTH.js
-
-//* Route registerer
-//. using when app starts in main.js
-export function registerAllRoutes(app) {
-  new Route_Login().registerRoute(app);
-  new Route_Register().registerRoute(app);
-
-  //! Add route registirations here!
-}
-
-
 //-- Route parent class
 
 export class Route {
@@ -106,4 +92,5 @@ export class Route {
   }
 
 }
+
 

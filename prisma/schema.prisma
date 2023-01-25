@@ -12,13 +12,42 @@ datasource db {
 
 
 model User {
-  username            String      @id
-  displayname         String
-  password            String
-  permissions         Json?
-  admin               Boolean     @default(false)
-  register_date       DateTime    @default(now())
-  register_ip         String?
-  lastlogin_date      DateTime?
-  lastlogin_ip        String?
+  username                String      @id
+  displayname             String
+  password                String
+  permissions             Json?
+  admin                   Boolean     @default(false)
+  register_date           DateTime    @default(now())
+  register_ip             String?
+  lastlogin_date          DateTime?
+  lastlogin_ip            String?
+  registered_currents     Current[]
 }
+
+
+model Current {
+  id                    Int           @id @default(autoincrement())
+  name                  String
+  address               String?
+  province              String?
+  district              String?
+  tax_office            String?
+  tax_no                String?
+  identification_no     String?
+  phone                 String?
+  phone_2               String?
+  mail                  String?
+  description           String?
+  code_1                String?
+  code_2                String?
+  code_3                String?
+  code_4                String?
+  registry_date         DateTime      @default(now())
+  registry_username     String?
+  registry_user         User?         @relation(references: [username], fields: [registry_username])
+  update_date           DateTime      @default(now())
+  update_username       String?
+}
+
+
+

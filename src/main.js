@@ -1,10 +1,11 @@
 import express from 'express'
 import { getDateString, getTimeString } from './libraries/misc.js'
 import * as dotenv from 'dotenv'
-import { Route_Login, Route_Register } from './routes/auth.js'
+import { registerAllRoutes } from './route_registerer.js'
+import { Current } from './models/current.js'
 import { User } from './models/user.js'
-import { registerAllRoutes } from './routes/route.js'
 dotenv.config()
+
 
 const app = express()
 
@@ -15,14 +16,19 @@ var server = app.listen(8000, function () {
 })
 
 process.on('uncaughtException', function (err) {
-  console.error(getDateString() + ' ' + getTimeString() + ' uncaughtException:', err.message)
+  console.error(getDateString() + ' ' + getTimeString() + ' uncaughtException')
   console.error(err.stack)
 })
 
 
 
 async function test() {
-  // User.createUser({username: "Ranork", password: "12345678"})
+  // await User.create({username: "Admin", password: "12345678"})
+  // let current = await Current.get(1)
+  // console.log(await current.update({name: "TESTTESTZ"}))
+  // console.log(await Current.count())
 }
 
 test()
+
+

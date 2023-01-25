@@ -12,7 +12,7 @@ dotenv.config()
 export class User {
 
   //* Manual construction
-  //! not effects the database, use createUser or login
+  //! not effects the database, use create or login
   constructor(username, user_details) {
     this.username = username.toLowerCase()      //. username to lover case
     if (user_details) {                         //. if given details save it
@@ -26,7 +26,7 @@ export class User {
     this.user_details = await prisma.User.findUnique(             //d get details from db
       { where: { username: this.username } }
     )
-    if (this.user_details === null) throw new Error('user ' + this.username + ' not found!')  //r if cant get details give error
+    if (this.user_details === null) throw new Error('user ' + this.username + ' not found')  //r if cant get details give error
   }
 
   //* Get Details of user
@@ -68,11 +68,11 @@ export class User {
   }
 
 
-  //-- Static generator methods
+  //-- Static constructor methods
 
   //* Create new user
   //r Returns User
-  static async createUser(user_details) {
+  static async create(user_details) {
     validate(user_details, user_register_schema)                        //. validate input schema
 
     user_details.displayname = user_details.username                    //. set displayname
@@ -112,7 +112,7 @@ export class User {
 
 
     await prisma.User.update({                                        //d update lastlogin info
-      where: { username: login_details.username },
+      where: { username: u_details.username },
       data: { 
         lastlogin_ip: (login_details.ip)                              //. if ip is given
           ? login_details.ip                                          //. send the ip
