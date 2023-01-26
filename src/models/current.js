@@ -36,6 +36,8 @@ export class Current {
   async update(current_details) {
     validate(current_details, current_update_schema)
 
+    current_details.update_date = new Date()
+    
     let upres = await prisma.Current.update({
       where: { id: this.id },
       data: current_details
@@ -66,6 +68,8 @@ export class Current {
       })
       if (last_current !== null) throw new Error('Current id is not empty')
     }
+
+    current_details.registry_date = new Date()
 
     let cresp = await prisma.Current.create({data: current_details})
 

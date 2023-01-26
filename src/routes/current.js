@@ -14,7 +14,11 @@ export class Route_Current extends Route {
     this.setMethod('GET', this.get)
     this.setPermission('GET', { login: true, permission: "CURRENT_VIEW" })
     this.setMethod('POST', this.post)
-    this.setPermission('POST', { login: true, permission: "CURRENT_EDIT"})
+    this.setPermission('POST', { login: true, permission: "CURRENT_EDIT" })
+    this.setMethod('PUT', this.put)
+    this.setPermission('PUT', { login: true, permission: "CURRENT_EDIT" })
+    this.setMethod('DELETE', this.del)
+    this.setPermission('DELETE', { login: true, permission: "CURRENT_EDIT" })
   }
 
   //* Show single or multiple Currents
@@ -52,7 +56,6 @@ export class Route_Current extends Route {
   async post(res, user, body) {
     if (!body) throw new Error('Body cannot be empty')
 
-    body.registry_date = new Date()
     body.registry_username = user.username
 
     let current = await Current.create(body)
@@ -64,6 +67,41 @@ export class Route_Current extends Route {
     }
 
     return Response.success(res, current, {Meta: meta})
+  }
+
+  //* Update a current
+  async put(res, user, body) {
+    if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
+
+    let current = await Current.get(body.id)
+
+    current = await current.update({
+      ...body.data,
+      update_username: user.username
+    })
     
+    let meta = {
+      url_path: res.req.url,
+      method: res.req.method,
+      user
+    }
+
+    return Response.success(res, current, {Meta: meta})
+  }
+
+  //* Remove a current
+  async del(res, user, body) {
+    if (!body || !body.id) throw new Error('Body cannot be empty')
+
+    let current = await Current.get(body.id)
+    let remresp = await current.remove()
+
+    let meta = {
+      url_path: res.req.url,
+      method: res.req.method,
+      user
+    }
+
+    return Response.success(res, remresp, {Meta: meta})
   }
 }

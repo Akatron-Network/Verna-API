@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { Route_Login, Route_Register } from "./auth";
+import { Route_Current } from './current';
+import { Globals } from '../libraries/globals';
+import { User } from '../models/user';
 
 describe('Route Tests', () => {
   
@@ -17,6 +20,12 @@ describe('Route Tests', () => {
     json(js) { this.json = js; return this; }
     req = {
       ip: '::ffff:127.0.0.1'
+    }
+
+    login() {
+      Globals.auth_tokens['RT-Token_Test'] = new User('admin', {admin: true})
+      this.req.headers = { token: 'RT-Token_Test' }
+      return Globals.auth_tokens['RT-Token_Test']
     }
   }
 
@@ -74,6 +83,22 @@ describe('Route Tests', () => {
     let ureg_resp = await register_route.methods.DELETE(fresp, Route_Login.getUser(fresp.req))
 
     expect(ureg_resp.status).toBe(200)
+
+  });
+
+
+  test('Current', async () => {
+    let fresp = new FakeResp();
+    let current_route = new Route_Current()
+
+
+    //-- Wrong inputs to current route
+
+    await expect(current_route.methods.POST(fresp, fresp.login(), {}))
+      .rejects.toThrow('instance requires property "name"')
+
+    //todo make current route tests
+
 
   });
 });
