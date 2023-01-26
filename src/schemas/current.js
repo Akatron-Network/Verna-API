@@ -50,3 +50,36 @@ export var current_update_schema = {
   },
   additionalProperties: false
 }
+
+
+export var current_activity_create_schema = {
+  type: "object",
+  properties: {
+    id: { type: "integer" },
+    current_id: { type: "integer" },
+    date: { type: "string", format: "date-time" },
+    expiry_date: { type: "string", format: "date-time" },
+    description: { type: "string", maxLength: 250 },
+    balance: { type: "number" },
+    registry_date: { type: "string", format: "date-time" },
+    registry_username: { type: "string" },
+  },
+  additionalProperties: false
+}
+
+export var current_activity_get_schema = { type: "integer" }
+
+
+export var current_activity_update_schema = {
+  type: "object",
+  properties: {
+    current_id: { type: "integer" },
+    date: { type: "string", format: "date-time" },
+    expiry_date: { type: "string", format: "date-time" },
+    description: { type: "string", maxLength: 250 },
+    balance: { type: "number" },
+    update_date: { type: "string", format: "date-time" },
+    update_username: { type: "string" },
+  },
+  additionalProperties: false
+}

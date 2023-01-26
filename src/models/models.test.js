@@ -1,7 +1,7 @@
 import { User } from "./user";
 import { PrismaClient } from '@prisma/client'
 import { Globals } from "../libraries/globals";
-import { Current } from "./current";
+import { Current, CurrentActivity } from "./current";
 
 describe('Model Tests', () => {
 
@@ -9,7 +9,7 @@ describe('Model Tests', () => {
   afterAll(async () => {
     const prisma = new PrismaClient()
     await prisma.User.deleteMany({ where: { username: { startsWith: "test_" } } })    //d clear user data
-    await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-TEST_" } } })  //d clear current data
+    await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
 
     await prisma.$disconnect()
   })
@@ -66,7 +66,6 @@ describe('Model Tests', () => {
   });
 
 
-
   test('Current', async () => {
 
     //-- Try to create with wrong inputs
@@ -77,11 +76,11 @@ describe('Model Tests', () => {
 
     //-- Try to create and update a current
 
-    let current = await Current.create({name: "RT-TEST_"})
+    let current = await Current.create({name: "RT-MTEST_"})
     expect(current).toBeDefined()                                       //? control the current
     expect(await Current.get(current.id)).toStrictEqual(current)        //? compare with get current
 
-    await expect(Current.create({id: current.id, name:"RT-TEST_"}))     //? try to create with same id
+    await expect(Current.create({id: current.id, name:"RT-MTEST_"}))     //? try to create with same id
       .rejects.toThrow()
 
     expect((await Current.getMany()).length).toBeGreaterThan(0)         //? get all currents and control the length
@@ -95,6 +94,46 @@ describe('Model Tests', () => {
     expect(await current.remove()).toBeDefined()                        //? remove current
     await expect(Current.get(current.id))                               //? try to get the current again
       .rejects.toThrow('current ' + current.id + ' not found')
+
+  });
+
+
+  test('CurrentActivity', async () => {
+    
+    //-- First create a current
+
+    let current = await Current.create({name: "RT-MTEST_"})
+    expect(current.id).toBeDefined()                                       //? control the current id
+
+    let curr_act_1 = await CurrentActivity.create({
+      current_id: current.id,
+      description: "test activity...",
+      balance: Math.round(Math.random()*1000000)/100  //. sth like 9776,65
+    })
+
+    expect(curr_act_1).toBeDefined()
+
+    await curr_act_1.update({
+      balance: Math.round(Math.random()*1000000)/100  //. sth like 9776,65
+    })
+
+    expect((await CurrentActivity.get(curr_act_1.id)).details.balance)
+      .toBe(curr_act_1.details.balance)
+
+    expect(await curr_act_1.remove()).toBeDefined()
+    
+    let curr_act_2 = await CurrentActivity.create({
+      current_id: current.id,
+      description: "test activity 2...",
+      balance: -1 * Math.round(Math.random()*1000000)/100  //. sth like -9776,65
+    })
+
+    expect(curr_act_2).toBeDefined()
+
+    await expect(curr_act_2.update({balance: "aaa"}))
+      .rejects.toThrow('instance.balance is not of a type(s) number')
+
+    expect(await curr_act_2.remove()).toBeDefined()
 
   });
 

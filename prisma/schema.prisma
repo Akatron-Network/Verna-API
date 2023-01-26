@@ -22,6 +22,7 @@ model User {
   lastlogin_date          DateTime?
   lastlogin_ip            String?
   registered_currents     Current[]
+  registered_curr_act     CurrentActivity[]
 }
 
 
@@ -47,7 +48,21 @@ model Current {
   registry_user         User?         @relation(references: [username], fields: [registry_username])
   update_date           DateTime      @default(now())
   update_username       String?
+  activities            CurrentActivity[]
 }
 
-
+model CurrentActivity {
+  id                    Int         @id @default(autoincrement())
+  current_id            Int
+  current               Current     @relation(fields: [current_id], references: [id], onDelete: Cascade)
+  date                  DateTime
+  expiry_date           DateTime
+  description           String?
+  balance               Float
+  registry_date         DateTime
+  registry_username     String?
+  registry_user         User?       @relation(references: [username], fields: [registry_username])
+  update_date           DateTime    @default(now())
+  update_username       String?
+}
 

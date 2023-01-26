@@ -9,7 +9,8 @@ describe('Route Tests', () => {
   //-- Clear test users
   afterAll(async () => {
     const prisma = new PrismaClient()
-    await prisma.User.deleteMany({ where: { username: { startsWith: "test_" } } })
+    await prisma.User.deleteMany({ where: { username: { startsWith: "rt-rtest_" } } })    //d clear user data
+    await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-RTEST" } } })  //d clear current data
 
     await prisma.$disconnect()
   })
@@ -40,15 +41,15 @@ describe('Route Tests', () => {
     await expect(register_route.methods.POST(fresp, undefined, {}))
       .rejects.toThrow('instance requires property "username"')
     
-    await expect(register_route.methods.POST(fresp, undefined, {username: 'test_'}))
+    await expect(register_route.methods.POST(fresp, undefined, {username: 'rt-rtest_'}))
       .rejects.toThrow('instance requires property "password"')
 
     
     //-- Register with normal user
 
     let nuser = {                                               //. Normal user data
-      username: "TEST_" + 
-                  (new Date()).valueOf().toString().substring(5),
+      username: "RT-RTEST_" + 
+                  (new Date()).valueOf().toString().substring(7),
       password: "12345678"
     }
 
@@ -88,7 +89,7 @@ describe('Route Tests', () => {
 
 
   test('Current', async () => {
-    let fresp = new FakeResp();
+    let fresp = new FakeResp()
     let current_route = new Route_Current()
 
 
@@ -97,8 +98,34 @@ describe('Route Tests', () => {
     await expect(current_route.methods.POST(fresp, fresp.login(), {}))
       .rejects.toThrow('instance requires property "name"')
 
-    //todo make current route tests
+    await expect(current_route.methods.POST(fresp, fresp.login(), {name: "a"}))
+      .rejects.toThrow('instance.name does not meet minimum length of 2')
 
+    //-- Create a current
+
+    let curr = {
+      name: "RT-RTEST" + (new Date()).valueOf().toString().substring(5)
+    }
+
+    let post_resp = await current_route.methods.POST(fresp, fresp.login(), curr)
+    expect(post_resp.status).toBe(200)
+    curr.id = post_resp.json.Data.id
+
+    fresp = new FakeResp()
+    let get_resp = await current_route.methods.GET(
+      fresp, fresp.login(), 
+      {query: {where: {name: curr.name}}}
+    )
+    
+    expect(get_resp.json.Data[0].id).toBe(curr.id)
+
+    fresp = new FakeResp()
+    let put_resp = await current_route.methods.PUT(
+      fresp, fresp.login(),
+      { id: curr.id, data: { mail: "test@akatron.net" }}
+    )
+    expect(put_resp.status).toBe(200)
+    expect(put_resp.json.Data.details.mail).toBe('test@akatron.net')
 
   });
 });

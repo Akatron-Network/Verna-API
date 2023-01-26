@@ -22,7 +22,7 @@ export class Route_Current extends Route {
   }
 
   //* Show single or multiple Currents
-  async get(res, user, body) {
+  async get(res, user, body = {}) {
     if (body.id) {
 
       let meta = {
