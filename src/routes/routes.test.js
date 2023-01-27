@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { Route_Login, Route_Register } from "./auth";
-import { Route_Current } from './current';
+import { Route_Current, Route_CurrentActivity } from './current';
 import { Globals } from '../libraries/globals';
 import { User } from '../models/user';
 
@@ -126,6 +126,75 @@ describe('Route Tests', () => {
     )
     expect(put_resp.status).toBe(200)
     expect(put_resp.json.Data.details.mail).toBe('test@akatron.net')
+
+  });
+
+
+  test('CurrentActivity', async () => {
+    
+    let fresp = new FakeResp()
+    let curract_route = new Route_CurrentActivity()
+    let current_route = new Route_Current()
+
+    //-- Wrong inputs
+
+    await expect(curract_route.methods.POST(fresp, fresp.login(), {}))
+      .rejects.toThrow('instance requires property "current_id"')
+    await expect(curract_route.methods.POST(fresp, fresp.login(), {current_id: 1}))
+      .rejects.toThrow('instance requires property "balance"')
+    
+    //-- Create a current
+
+    fresp = new FakeResp()
+
+    let curr = {
+      name: "RT-RTEST" + (new Date()).valueOf().toString().substring(5)
+    }
+
+    let post_resp = await current_route.methods.POST(fresp, fresp.login(), curr)
+    expect(post_resp.status).toBe(200)
+    curr = post_resp.json.Data
+
+    //-- Create an activity
+
+    fresp = new FakeResp()
+
+    let curr_act_1 = (await curract_route.methods.POST(fresp, fresp.login(), {
+      current_id: curr.id, balance: Math.round(Math.random()*1000000)/100  //. sth like 9776,65
+    })).json.Data
+
+    expect(curr_act_1).toBeDefined()
+
+    //-- Update the activity
+
+    fresp = new FakeResp()
+    let curr_act_2 = (await curract_route.methods.PUT(fresp, fresp.login(), {
+      id: curr_act_1.id,
+      data: { balance: -1 * Math.round(Math.random()*1000000)/100 }  //. sth like -9776,65
+    })).json.Data
+
+    expect(curr_act_2).toBeDefined()
+
+    //-- Get acts from current
+
+    fresp = new FakeResp()
+    let acts = (await curract_route.methods.GET(fresp, fresp.login(), {current_id: curr.id})).json.Data
+
+    expect(acts.length).toBe(1)
+
+    //-- Remove the act
+
+    fresp = new FakeResp()
+    let remresp = (await curract_route.methods.DELETE(fresp, fresp.login(), {id: curr_act_2.id})).json.Data
+
+    console.log(remresp);
+
+    //-- Get acts from current
+
+    fresp = new FakeResp()
+    let acts2 = (await curract_route.methods.GET(fresp, fresp.login(), {current_id: curr.id})).json.Data
+
+    expect(acts2.length).toBe(0)
 
   });
 });

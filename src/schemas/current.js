@@ -52,6 +52,8 @@ export var current_update_schema = {
 }
 
 
+//--------------------------------------------------------------------------
+
 export var current_activity_create_schema = {
   type: "object",
   properties: {
@@ -64,7 +66,8 @@ export var current_activity_create_schema = {
     registry_date: { type: "string", format: "date-time" },
     registry_username: { type: "string" },
   },
-  additionalProperties: false
+  additionalProperties: false,
+  required: ['current_id', 'balance']
 }
 
 export var current_activity_get_schema = { type: "integer" }

@@ -105,9 +105,10 @@ export class Current {
 
   //-- Static util methods
 
-  static async count() {
+  static async count(extra_query = {}) {
     let resp = await prisma.Current.aggregate({
-      _count: true
+      _count: true,
+      ...extra_query
     })
     if (resp === null) return 0
     return resp['_count']
@@ -118,7 +119,7 @@ export class Current {
 
 
 
-export class CurrentActivity{
+export class CurrentActivity {
 
   //* Manual construction
   //! not effects the database, use create or get
@@ -210,5 +211,15 @@ export class CurrentActivity{
     return resps.map(r => new CurrentActivity(r.id, r))
   }
 
+  //-- Static util methods
+
+  static async count(extra_query = {}) {
+    let resp = await prisma.CurrentActivity.aggregate({
+      _count: true,
+      ...extra_query
+    })
+    if (resp === null) return 0
+    return resp['_count']
+  }
 
 }

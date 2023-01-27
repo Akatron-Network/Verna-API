@@ -4,6 +4,7 @@ import * as dotenv from 'dotenv'
 import { registerAllRoutes } from './route_registerer.js'
 import { Current } from './models/current.js'
 import { User } from './models/user.js'
+import { Globals } from './libraries/globals.js'
 dotenv.config()
 
 
@@ -20,15 +21,16 @@ process.on('uncaughtException', function (err) {
   console.error(err.stack)
 })
 
+//* Tester admin debug token
+//! dont forget to delete before production
+Globals.auth_tokens['RT-Token_Admin'] = new User('admin', {admin: true})
 
 
+
+//* async function to test
 async function test() {
-  // await User.create({username: "Admin", password: "12345678"})
-  // let current = await Current.get(1)
-  // console.log(await current.update({name: "TESTTESTZ"}))
-  // console.log(await Current.count())
+  
 }
-
 test()
 
 
