@@ -2,6 +2,7 @@ import { User } from "./user";
 import { PrismaClient } from '@prisma/client'
 import { Globals } from "../libraries/globals";
 import { Current, CurrentActivity } from "./current";
+import { Stock } from "./stock";
 
 describe('Model Tests', () => {
 
@@ -10,6 +11,7 @@ describe('Model Tests', () => {
     const prisma = new PrismaClient()
     await prisma.User.deleteMany({ where: { username: { startsWith: "test_" } } })    //d clear user data
     await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
+    await prisma.Stock.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
 
     await prisma.$disconnect()
   })
@@ -134,6 +136,40 @@ describe('Model Tests', () => {
       .rejects.toThrow('instance.balance is not of a type(s) number')
 
     expect(await curr_act_2.remove()).toBeDefined()
+
+  });
+
+  test('Stock', async () => {
+    
+    //-- Try wrong inputs
+
+    await expect(Stock.create()).rejects.toThrow('instance requires property "name"')
+    await expect(Stock.create({name: 1})).rejects.toThrow('instance.name is not of a type(s) string')
+
+    //-- Create a stock
+
+    let stock = await Stock.create({
+      name: "RT-MTEST_" + (new Date()).valueOf().toString().substring(5),
+      unit: "M2",
+      code_1: "TEST"
+    })
+    expect(stock.id).toBeDefined()
+    expect(stock.details.code_1).toBe('TEST')
+    expect(stock.details.unit).toBe('M2')
+
+    //-- Update the stock
+
+    expect(await stock.update({code_2: "TEST2"})).toBeDefined()
+    expect(stock.details.code_2).toBe('TEST2')
+
+    //-- Get stock
+
+    expect((await Stock.get(stock.id)).details).toStrictEqual(stock.details)
+    expect((await Stock.getMany({where: {id: stock.id}})).length).toBeGreaterThan(0)
+
+    //-- Remove the stock
+
+    expect(await stock.remove()).toBeDefined()
 
   });
 

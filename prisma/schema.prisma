@@ -23,12 +23,14 @@ model User {
   lastlogin_ip            String?
   registered_currents     Current[]
   registered_curr_act     CurrentActivity[]
+  registered_stocks       Stock[]
 }
 
 
 model Current {
   id                    Int           @id @default(autoincrement())
   name                  String
+  current_type          String?
   address               String?
   province              String?
   district              String?
@@ -66,3 +68,24 @@ model CurrentActivity {
   update_username       String?
 }
 
+
+model Stock {
+  id                    Int         @id @default(autoincrement())
+  name                  String
+  material              String?
+  product_group         String?
+  unit                  String?
+  unit_2                String?
+  conversion_rate       Float?
+  buy_price             Float?
+  sell_price            Float?
+  code_1                String?
+  code_2                String?
+  code_3                String?
+  code_4                String?
+  registry_date         DateTime
+  registry_username     String?
+  registry_user         User?       @relation(references: [username], fields: [registry_username])
+  update_date           DateTime    @default(now())
+  update_username       String?
+}

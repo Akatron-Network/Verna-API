@@ -3,14 +3,16 @@ import { Route_Login, Route_Register } from "./auth";
 import { Route_Current, Route_CurrentActivity } from './current';
 import { Globals } from '../libraries/globals';
 import { User } from '../models/user';
+import { Route_Stock } from './stock';
 
 describe('Route Tests', () => {
   
-  //-- Clear test users
+  //-- Clear test datas
   afterAll(async () => {
     const prisma = new PrismaClient()
     await prisma.User.deleteMany({ where: { username: { startsWith: "rt-rtest_" } } })    //d clear user data
     await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-RTEST" } } })  //d clear current data
+    await prisma.Stock.deleteMany({ where: { name: { startsWith: "RT-RTEST" } } })  //d clear stock data
 
     await prisma.$disconnect()
   })
@@ -187,8 +189,6 @@ describe('Route Tests', () => {
     fresp = new FakeResp()
     let remresp = (await curract_route.methods.DELETE(fresp, fresp.login(), {id: curr_act_2.id})).json.Data
 
-    console.log(remresp);
-
     //-- Get acts from current
 
     fresp = new FakeResp()
@@ -197,6 +197,59 @@ describe('Route Tests', () => {
     expect(acts2.length).toBe(0)
 
   });
+
+
+  test('Stock', async () => {
+    let fresp = new FakeResp()
+    let stock_route = new Route_Stock()
+
+    //-- Wrong inputs
+
+    await expect(stock_route.methods.POST(fresp, fresp.login(), {}))
+      .rejects.toThrow('instance requires property "name"')
+    await expect(stock_route.methods.POST(fresp, fresp.login(), {name: 'a'}))
+      .rejects.toThrow('instance.name does not meet minimum length of 2')
+
+    //-- Create a stock
+
+    let stock = {
+      name: "RT-RTEST" + (new Date()).valueOf().toString().substring(5)
+    }
+
+    fresp = new FakeResp()
+    let postresp = await stock_route.methods.POST(fresp, fresp.login(), stock)
+    expect(postresp.status).toBe(200)
+    stock.id = postresp.json.Data.id
+
+    
+    fresp = new FakeResp()
+    let getresp = await stock_route.methods.GET(
+      fresp, fresp.login(), 
+      {query: {where: {name: stock.name}}}
+    )
+    
+    expect(getresp.json.Data[0].id).toBe(stock.id)
+
+    //-- Update the stock
+
+    fresp = new FakeResp()
+    let putresp = await stock_route.methods.PUT(fresp, fresp.login(), {
+      id: stock.id,
+      data: {
+        material: "TEST"
+      }
+    })
+    expect(putresp.status).toBe(200)
+    
+    //-- Delete the stock
+
+    fresp = new FakeResp()
+    let delresp = await stock_route.methods.DELETE(fresp, fresp.login(), {id: stock.id})
+    expect(delresp.status).toBe(200)
+
+  });
+
+
 });
 
 

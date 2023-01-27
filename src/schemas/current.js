@@ -3,6 +3,7 @@ export var current_create_schema = {
   properties: {
     id: { type: "integer" },
     name: { type: "string", minLength: 2, maxLength: 50 },
+    current_type: { type: "string", maxLength: 50 },
     address: { type: "string", maxLength: 500 },
     province: { type: "string", maxLength: 100 },
     district: { type: "string", maxLength: 100 },
@@ -31,6 +32,7 @@ export var current_update_schema = {
   type: "object",
   properties: {
     name: { type: "string", minLength: 2, maxLength: 50 },
+    current_type: { type: "string", maxLength: 50 },
     address: { type: "string", maxLength: 500 },
     province: { type: "string", maxLength: 100 },
     district: { type: "string", maxLength: 100 },

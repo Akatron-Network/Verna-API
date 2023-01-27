@@ -213,6 +213,8 @@ export class CurrentActivity {
 
   //-- Static util methods
 
+  //* Get count of results
+  //r Return integer
   static async count(extra_query = {}) {
     let resp = await prisma.CurrentActivity.aggregate({
       _count: true,

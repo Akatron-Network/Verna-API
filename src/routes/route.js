@@ -91,6 +91,15 @@ export class Route {
     return user
   }
 
+  //* Generate base meta
+  static generateMeta(req) {
+    return {
+      url_path: req.url,
+      method: req.method,
+      user: this.getUser(req)
+    }
+  }
+
 }
 
 
