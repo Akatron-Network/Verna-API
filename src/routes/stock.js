@@ -21,7 +21,6 @@ export class Route_Stock extends Route {
     this.setMethod('DELETE', this.del)
     this.setPermission('DELETE', { login: true, permission: "STOCK_EDIT" })
   }
-
   
   //* Show single or multiple Stocks
   async get (res, user, body = {}) {
@@ -62,7 +61,6 @@ export class Route_Stock extends Route {
     return Response.success(res, stock, {Meta: Route.generateMeta(res.req)})
   }
 
-  
   //* Update a Stock
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')

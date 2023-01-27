@@ -26,7 +26,6 @@ model User {
   registered_stocks       Stock[]
 }
 
-
 model Current {
   id                    Int           @id @default(autoincrement())
   name                  String
@@ -67,7 +66,6 @@ model CurrentActivity {
   update_date           DateTime    @default(now())
   update_username       String?
 }
-
 
 model Stock {
   id                    Int         @id @default(autoincrement())

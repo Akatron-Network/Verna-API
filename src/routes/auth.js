@@ -50,9 +50,16 @@ export class Route_Register extends Route {
     super('/register', 'register', 'Create new user')
 
     //* Register methods and permissions
+    this.setMethod('GET', this.get)
+    this.setPermission('GET', {login: true})
     this.setMethod('POST', this.post)
     this.setMethod('DELETE', this.delete)
     this.setPermission('DELETE', {login: true})
+  }
+  
+  //* Show profile
+  async get (res, user, body) {
+    return Response.success(res, user)
   }
 
   //* Register
@@ -70,3 +77,4 @@ export class Route_Register extends Route {
   }
 
 }
+
