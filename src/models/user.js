@@ -77,7 +77,10 @@ export class User {
 
     let ndetails = await prisma.User.update({
       where: { username: this.username },
-      data: details
+      data: {
+        ...details,
+        old_password: (details.password) ? this.user_details.password : undefined
+      }
     })
 
     this.user_details = ndetails

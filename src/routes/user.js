@@ -13,9 +13,13 @@ export class Route_User extends Route {
     this.setPermission('GET', { login: true, permission: 'USER_VIEW' })
     this.setMethod('POST', this.post)
     this.setPermission('POST', { login: true, permission: 'USER_EDIT' })
+    this.setMethod('PUT', this.put)
+    this.setPermission('PUT', { login: true, permission: 'USER_EDIT' })
+    this.setMethod('DELETE', this.del)
+    this.setPermission('DELETE', { login: true, permission: 'USER_EDIT' })
   }
 
-  //* Show single or multiple users
+  //* Show single or multiple Users
   async get (res, user, body) {
     if (body.username) {
       
@@ -42,7 +46,7 @@ export class Route_User extends Route {
     return Response.success(res, users, {Meta: meta})
   }
   
-  //* Create a new user
+  //* Create a new User
   async post (res, user, body) {
     if (!body) throw new Error('Body cannot be empty')
 
@@ -51,6 +55,26 @@ export class Route_User extends Route {
     let usr = await User.create(body)
     
     return Response.success(res, usr, {Meta: Route.generateMeta(res.req)})
+  }
+
+  //* Update an User
+  async put (res, user, body) {
+    if (!body || !body.username || !body.data) throw new Error('Body cannot be empty')
+
+    let usr = await User.get(body.username)
+    usr = await usr.update({...body.data})
+    
+    return Response.success(res, usr, {Meta: Route.generateMeta(res.req)})
+  }
+
+  //* Delete an User
+  async del (res, user, body) {
+    if (!body || !body.username) throw new Error('Body cannot be empty')
+
+    let usr = await User.get(body.username)
+    let remresp = await usr.removeUser()
+
+    return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})
   }
 
 }
