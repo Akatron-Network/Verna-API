@@ -24,6 +24,7 @@ model User {
   registered_currents     Current[]
   registered_curr_act     CurrentActivity[]
   registered_stocks       Stock[]
+  old_password            String?
 }
 
 model Current {

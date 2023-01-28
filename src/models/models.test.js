@@ -53,7 +53,7 @@ describe('Model Tests', () => {
 
     //-- Login with new user
     nuser.password = "12345678"
-    let cuser = await User.login(nuser)
+    let cuser = await User.login({username: nuser.username, password: nuser.password})
     expect(cuser).toBeDefined()                                 //? try to login with created user
     expect(Object.keys(Globals.auth_tokens).length).toBe(1)     //? control the saved token length
     expect(Globals.auth_tokens[cuser.token]).toBeDefined()      //? control the token exists

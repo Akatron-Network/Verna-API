@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { user_register_schema, user_login_schema } from '../schemas/user.js'
+import { user_register_schema, user_login_schema, user_update_schema, user_get_schema } from '../schemas/user.js'
 import { validate } from '../libraries/validation.js';
 import { randStr } from '../libraries/misc.js';
 import { Globals } from '../libraries/globals.js';
@@ -67,6 +67,22 @@ export class User {
     return await prisma.User.delete({ where: { username: this.username } })   //d delete user from db
   }
 
+  //* Update user
+  async update(details) {
+    validate(details, user_update_schema)
+
+    if (!this.details) await this.initDetails()
+
+    if (details.password) details.password = await bcrypt.hash(details.password, parseInt(process.env.HASH_SALT_ROUNDS))
+
+    let ndetails = await prisma.User.update({
+      where: { username: this.username },
+      data: details
+    })
+
+    this.user_details = ndetails
+    return this
+  }
 
   //-- Static constructor methods
 
@@ -141,5 +157,40 @@ export class User {
     return Globals.auth_tokens[token]                                 //r give User object from tokens list
   }
   
+  //* Get a Stock by Id
+  //r Returns Stock object
+  static async get(id) {
+    validate(id, user_get_schema)
+
+    let user = new User(id)
+    await user.initDetails()
+
+    return user
+  }
+
+  //* Get Stocks with query
+  //r Returns array of Stock objects
+  static async getMany(query = {}, pagination = true) {
+    if (pagination) {
+      if (!query.skip) query.skip = 0
+      if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
+    }
+
+    let resps = await prisma.User.findMany(query)
+    return resps.map(r => new User(r.username, r))
+  }
+
+  //-- Static util methods
+
+  //* Get count of results
+  //r Return integer
+  static async count(extra_query = {}) {
+    let resp = await prisma.User.aggregate({
+      _count: true,
+      ...extra_query
+    })
+    if (resp === null) return 0
+    return resp['_count']
+  }
 
 }

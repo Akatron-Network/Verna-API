@@ -22,7 +22,7 @@ export class Route_Login extends Route {
   }
 
   //* Login
-  async get(res, user, body) {
+  async get (res, user, body) {
     let ip = res.req.ip.replace(/::ffff:/, '')
     let usr = await User.login({...body, ip})
     
@@ -30,7 +30,7 @@ export class Route_Login extends Route {
   }
 
   //* Logout
-  async del(res, user, body) {
+  async del (res, user, body) {
     user.logout()
     return Response.success(res)
   }
@@ -63,7 +63,7 @@ export class Route_Register extends Route {
   }
 
   //* Register
-  async post(res, user, body) {
+  async post (res, user, body) {
     let register_ip = res.req.ip.replace(/::ffff:/, '')
     let usr = await User.create({...body, register_ip})
 
@@ -71,10 +71,12 @@ export class Route_Register extends Route {
   }
 
   //* Delete user
-  async delete(res, user, body) {
+  async delete (res, user, body) {
     let deluser = await user.removeUser()
     return Response.success(res, deluser)
   }
 
 }
+
+
 

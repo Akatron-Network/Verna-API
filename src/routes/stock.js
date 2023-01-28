@@ -57,7 +57,6 @@ export class Route_Stock extends Route {
 
     let stock = await Stock.create(body)
     
-
     return Response.success(res, stock, {Meta: Route.generateMeta(res.req)})
   }
 
