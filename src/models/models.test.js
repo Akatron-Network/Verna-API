@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { Globals } from "../libraries/globals";
 import { Current, CurrentActivity } from "./current";
 import { Stock } from "./stock";
+import { Order, OrderItem } from "./order";
 
 describe('Model Tests', () => {
 
@@ -10,6 +11,7 @@ describe('Model Tests', () => {
   afterAll(async () => {
     const prisma = new PrismaClient()
     await prisma.User.deleteMany({ where: { username: { startsWith: "test_" } } })    //d clear user data
+    await prisma.Order.deleteMany({ where: { code_1: { startsWith: "RT-MTEST_" } } })
     await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
     await prisma.Stock.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
 
@@ -170,6 +172,57 @@ describe('Model Tests', () => {
     //-- Remove the stock
 
     expect(await stock.remove()).toBeDefined()
+
+  });
+
+  test('Order & OrderItems', async () => {
+    
+    let current = await Current.create({
+      name: "RT-MTEST_" +  + (new Date()).valueOf().toString().substring(5)
+    })
+
+    let stock_1 = await Stock.create({
+      name: "RT-MTEST_1" + (new Date()).valueOf().toString().substring(6),
+      unit: "M2"
+    })
+
+    let stock_2 = await Stock.create({
+      name: "RT-MTEST_2" + (new Date()).valueOf().toString().substring(6),
+      unit: "PK"
+    })
+
+    let order = await Order.create({
+      current_id: current.id,
+      order_source: "WEBSITE",
+      total_fee: 1100.20,
+      code_1: "RT-MTEST_" + (new Date()).valueOf().toString().substring(6),
+      items: [
+        {
+          row: 1,
+          stock_id: stock_1.id,
+          unit: stock_1.details.unit,
+          amount: 2,
+          price: 100,
+          tax_rate: 0.18
+        },
+        {
+          row: 2,
+          stock_id: stock_2.id,
+          unit: stock_2.details.unit,
+          amount: 3,
+          price: 25,
+          tax_rate: 0.18
+        }
+      ]
+    })
+
+    expect(order).toBeDefined()
+    expect((await Order.get(order.id)).details).toStrictEqual(order.details)
+
+    expect((await Order.getMany({where: { code_1: {startsWith: 'RT-MTEST_'}}})).length).toBe(1)
+    expect((await OrderItem.getMany({where: { order_id: order.id}})).length).toBe(order.items.length)
+
+    expect(order.remove()).toBeDefined()
 
   });
 

@@ -123,6 +123,7 @@ model OrderItem {
   stock                 Stock       @relation(references: [id], fields: [stock_id])
   unit                  String?
   amount                Float
+  price                 Float
   tax_rate              Float?
   description           String?
   registry_date         DateTime    @default(now())

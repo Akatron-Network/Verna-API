@@ -60,12 +60,13 @@ export var orderItem_create_schema = {
     stock_id          : { type: "integer" },
     unit              : { type: "string", maxLength: 50 },
     amount            : { type: "number" },
+    price             : { type: "number" },
     tax_rate          : { type: "number" },
     description       : { type: "string", maxLength: 500 },
     registry_date     : { type: "string", format: "date-time" },
     registry_username : { type: "string" },
   },
-  required: ['order_id', 'stock_id', 'amount'],
+  required: ['order_id', 'stock_id', 'amount', 'price'],
   additionalProperties: false
 }
 
@@ -80,9 +81,9 @@ export var orderItem_update_schema = {
     stock_id          : { type: "integer" },
     unit              : { type: "string", maxLength: 50 },
     amount            : { type: "number" },
+    price             : { type: "number" },
     tax_rate          : { type: "number" },
     description       : { type: "string", maxLength: 500 },
   },
-  required: ['order_id', 'stock_id', 'amount'],
   additionalProperties: false
 }
