@@ -24,6 +24,7 @@ model User {
   registered_currents     Current[]
   registered_curr_act     CurrentActivity[]
   registered_stocks       Stock[]
+  registered_orders       Order[]
   old_password            String?
 }
 
@@ -51,6 +52,7 @@ model Current {
   update_date           DateTime      @default(now())
   update_username       String?
   activities            CurrentActivity[]
+  orders                Order[]
 }
 
 model CurrentActivity {
@@ -87,4 +89,42 @@ model Stock {
   registry_user         User?       @relation(references: [username], fields: [registry_username])
   update_date           DateTime    @default(now())
   update_username       String?
+  orders                OrderItem[]
+}
+
+model Order {
+  id                    Int         @id @default(autoincrement())
+  current_id            Int
+  current               Current     @relation(references: [id], fields: [current_id])
+  date                  DateTime    @default(now())
+  delivery_date         DateTime    @default(now())
+  order_source          String?
+  invoiced              Boolean     @default(false)
+  printed               Boolean     @default(false)
+  total_fee             Float
+  code_1                String?
+  code_2                String?
+  code_3                String?
+  code_4                String?
+  registry_date         DateTime    @default(now())
+  registry_username     String?
+  registry_user         User?       @relation(references: [username], fields: [registry_username])
+  update_date           DateTime    @default(now())
+  update_username       String?
+  items                 OrderItem[]
+}
+
+model OrderItem {
+  id                    Int         @id @default(autoincrement())
+  row                   Int?
+  order_id              Int
+  order                 Order       @relation(references: [id], fields: [order_id], onDelete: Cascade)
+  stock_id              Int
+  stock                 Stock       @relation(references: [id], fields: [stock_id])
+  unit                  String?
+  amount                Float
+  tax_rate              Float?
+  description           String?
+  registry_date         DateTime    @default(now())
+  registry_username     String?
 }
