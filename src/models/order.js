@@ -6,7 +6,8 @@ import {
   orderItem_get_schema,
   orderItem_update_schema,
   order_create_schema,
-  order_get_schema
+  order_get_schema,
+  order_update_schema
 } from '../schemas/order.js'
 
 const prisma = new PrismaClient()
@@ -51,6 +52,67 @@ export class Order {
     return await prisma.Order.delete({ where: { id: this.id } })
   }
 
+  //* Update the Order
+  //r Returns updated Order object
+  async update(update_data) {
+    validate(update_data, order_update_schema)
+
+    let old_details = {...this.details}
+    let old_items = [...this.items]
+    let old_item_ids = old_items.map(i => i.id)
+
+    update_data.update_date = new Date()
+
+    let upres = await prisma.Order.update({
+      where: { id: this.id },
+      data: {...update_data, items: undefined}
+    })
+
+    this.details = upres
+
+    if (!update_data.items) return this
+
+    //* control removed items
+    for (let oitem of old_items) {
+      if (!update_data.items.map(i => i.id).includes(oitem.id)) await oitem.remove()
+    }
+
+    //* update and create items
+    for (let item of update_data.items) {
+      if (item.id && old_item_ids.includes(item.id)) {
+        let itemid = item.id
+        delete item['id']
+        delete item['registry_date']
+        delete item['registry_username']
+        delete item['update_date']
+        delete item['update_username']
+        await old_items[old_item_ids.indexOf(itemid)].update({...item})
+      }
+      else await OrderItem.create({
+        ...item, 
+        order_id: this.id,
+        registry_username: this.details.registry_username
+      })
+    }
+
+    await this.initItems()
+    await this.calculateFee()
+    return this
+  }
+
+  //* Calculate the total_fee
+  //r Returns updated Order object
+  async calculateFee() {
+    if (!this.items || !this.details) await this.init()
+
+    let total_fee = this.items.reduce( function (accVar, currVal) {
+      return accVar + (currVal.details.amount * currVal.details.price)
+    }, 0)
+
+    await this.update({total_fee})
+    return this
+  }
+
   //-- Static Construct Methods
 
   //* Create new Order with details and items
@@ -71,7 +133,11 @@ export class Order {
 
     try {
       for (let item of new_order.items) {
-        let ordItem = await OrderItem.create({...item, order_id: order.id})
+        let ordItem = await OrderItem.create({
+          ...item, 
+          order_id: order.id, 
+          registry_username: order.details.registry_username
+        })
         order.items.push(ordItem)
       }
     }
@@ -79,6 +145,8 @@ export class Order {
       await order.remove()
       throw new Error('Order creation failed. \n' + e.message)
     }
+
+    await order.calculateFee()
 
     return order
   }
@@ -90,7 +158,7 @@ export class Order {
 
     let order = new Order(id)
     await order.init()
-
+    await order.calculateFee()
     return order
   }
 
@@ -102,9 +170,26 @@ export class Order {
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
+    if (!query.select || !query.include) query.include = {items: true}
+
     let resps = await prisma.Order.findMany(query)
     return resps.map(r => new Order(r.id, r))
   }
+  
+  //-- Static util methods
+
+  //* Get count of results
+  //r Returns integer
+  static async count(extra_query = {}) {
+    delete extra_query['include']
+    let resp = await prisma.Order.aggregate({
+      _count: true,
+      ...extra_query
+    })
+    if (resp === null) return 0
+    return resp['_count']
+  }
+
 }
 
 
@@ -139,8 +224,6 @@ export class OrderItem {
   async update (update_data) {
     validate(update_data, orderItem_update_schema)
 
-    update_data.update_date = new Date()
-
     let upres = await prisma.OrderItem.update({
       where: { id: this.id },
       data: update_data
@@ -155,6 +238,13 @@ export class OrderItem {
   async remove () {
     if (!this.details) await this.initDetails()
     return await prisma.OrderItem.delete({ where: { id: this.id } })
+  }
+
+  //* Get the Order from item
+  //r Returns Order object
+  async getOrder() {
+    if (!this.details) await this.initDetails()
+    return Order.get(this.details.order_id)
   }
 
   //-- Static Construct Methods
@@ -198,6 +288,20 @@ export class OrderItem {
 
     let resps = await prisma.OrderItem.findMany(query)
     return resps.map(r => new OrderItem(r.id, r))
+  }
+
+  //-- Static util methods
+
+  //* Get count of results
+  //r Returns integer
+  static async count(extra_query = {}) {
+    delete extra_query['include']
+    let resp = await prisma.OrderItem.aggregate({
+      _count: true,
+      ...extra_query
+    })
+    if (resp === null) return 0
+    return resp['_count']
   }
 
 }

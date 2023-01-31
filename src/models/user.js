@@ -188,6 +188,7 @@ export class User {
   //* Get count of results
   //r Return integer
   static async count(extra_query = {}) {
+    delete extra_query['include']
     let resp = await prisma.User.aggregate({
       _count: true,
       ...extra_query

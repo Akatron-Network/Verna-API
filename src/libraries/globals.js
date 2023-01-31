@@ -1,4 +1,3 @@
-import { User } from "../models/user.js";
 
 export class Globals {
   static auth_tokens = {

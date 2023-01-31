@@ -1,6 +1,6 @@
-import { Globals } from "./libraries/globals.js";
 import { Route_Login, Route_Register } from "./routes/auth.js";
 import { Route_Current, Route_CurrentActivity } from "./routes/current.js";
+import { Route_Order, Route_OrderItem } from "./routes/order.js";
 import { Route_Stock } from "./routes/stock.js";
 import { Route_User } from "./routes/user.js";
 
@@ -11,6 +11,9 @@ var routes = [
   new Route_CurrentActivity(),
   new Route_Stock(),
   new Route_User(),
+  new Route_Order(),
+  new Route_OrderItem(),
+  
 
   //! Add route registirations here!
 ]

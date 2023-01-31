@@ -24,15 +24,8 @@ export class Route_Current extends Route {
   //* Show single or multiple Currents
   async get (res, user, body = {}) {
     if (body.id) {
-
-      let meta = {
-        url_path: res.req.url,
-        method: res.req.method,
-        user
-      }
-
       let current = await Current.get(parseInt(body.id))
-      return Response.success(res, current, {Meta: meta})
+      return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
     }
     
     if (!body.query) body.query = {}
@@ -48,9 +41,7 @@ export class Route_Current extends Route {
       showing: currents.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
-      url_path: res.req.url,
-      method: res.req.method,
-      user
+      ...Route.generateMeta(res.req)
     }
 
     return Response.success(res, currents, {Meta: meta})
@@ -63,14 +54,8 @@ export class Route_Current extends Route {
     body.registry_username = user.username
 
     let current = await Current.create(body)
-    
-    let meta = {
-      url_path: res.req.url,
-      method: res.req.method,
-      user
-    }
 
-    return Response.success(res, current, {Meta: meta})
+    return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
   }
 
   //* Update a current
@@ -83,14 +68,8 @@ export class Route_Current extends Route {
       ...body.data,
       update_username: user.username
     })
-    
-    let meta = {
-      url_path: res.req.url,
-      method: res.req.method,
-      user
-    }
 
-    return Response.success(res, current, {Meta: meta})
+    return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
   }
 
   //* Remove a current
@@ -100,13 +79,7 @@ export class Route_Current extends Route {
     let current = await Current.get(body.id)
     let remresp = await current.remove()
 
-    let meta = {
-      url_path: res.req.url,
-      method: res.req.method,
-      user
-    }
-
-    return Response.success(res, remresp, {Meta: meta})
+    return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})
   }
 
 }
@@ -132,15 +105,8 @@ export class Route_CurrentActivity extends Route {
   //* Show single or multiple CurrentActs
   async get (res, user, body = {}) {
     if (body.id) {
-
-      let meta = {
-        url_path: res.req.url,
-        method: res.req.method,
-        user
-      }
-
       let current_act = await CurrentActivity.get(parseInt(body.id))
-      return Response.success(res, current_act, {Meta: meta})
+      return Response.success(res, current_act, {Meta: Route.generateMeta(res.req)})
     }
 
     if (body.current_id) {
@@ -192,14 +158,8 @@ export class Route_CurrentActivity extends Route {
     body.registry_username = user.username
 
     let current = await CurrentActivity.create(body)
-    
-    let meta = {
-      url_path: res.req.url,
-      method: res.req.method,
-      user
-    }
 
-    return Response.success(res, current, {Meta: meta})
+    return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
   }
   
   //* Update a CurrentAct
@@ -213,13 +173,7 @@ export class Route_CurrentActivity extends Route {
       update_username: user.username
     })
     
-    let meta = {
-      url_path: res.req.url,
-      method: res.req.method,
-      user
-    }
-
-    return Response.success(res, current, {Meta: meta})
+    return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
   }
 
   //* Remove a CurrentAct
@@ -229,12 +183,6 @@ export class Route_CurrentActivity extends Route {
     let current = await CurrentActivity.get(body.id)
     let remresp = await current.remove()
 
-    let meta = {
-      url_path: res.req.url,
-      method: res.req.method,
-      user
-    }
-
-    return Response.success(res, remresp, {Meta: meta})
+    return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})
   }
 }

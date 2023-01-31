@@ -27,17 +27,17 @@ describe('Model Tests', () => {
       username: "a",
       password: "b"
     }
-    await expect(User.create(wuser)).rejects.toThrow()      //? try with short username and password
+    await expect(User.create(wuser)).rejects.toThrow()          //? try with short username and password
     
     wuser.username = "abcdef"
-    await expect(User.create(wuser)).rejects.toThrow()      //? try with short password only
+    await expect(User.create(wuser)).rejects.toThrow()          //? try with short password only
 
     wuser.password = undefined
-    await expect(User.create(wuser)).rejects.toThrow()      //? try without password
+    await expect(User.create(wuser)).rejects.toThrow()          //? try without password
 
     wuser.password = "12345678"
     wuser.username = "a"
-    await expect(User.create(wuser)).rejects.toThrow()      //? try with short username only
+    await expect(User.create(wuser)).rejects.toThrow()          //? try with short username only
     
 
     //-- Create a normal user
@@ -48,9 +48,9 @@ describe('Model Tests', () => {
       password: "12345678"
     }
 
-    let user = await User.create(nuser)                     //. create a user with data
+    let user = await User.create(nuser)                         //. create a user with data
     expect(user).toBeDefined()                                  //? control is it defined
-    await expect(User.create(nuser)).rejects.toThrow()      //? try to recreate same user
+    await expect(User.create(nuser)).rejects.toThrow()          //? try to recreate same user
 
 
     //-- Login with new user
@@ -141,6 +141,7 @@ describe('Model Tests', () => {
 
   });
 
+  
   test('Stock', async () => {
     
     //-- Try wrong inputs
@@ -175,8 +176,11 @@ describe('Model Tests', () => {
 
   });
 
+
   test('Order & OrderItems', async () => {
     
+    //-- Create new order
+
     let current = await Current.create({
       name: "RT-MTEST_" +  + (new Date()).valueOf().toString().substring(5)
     })
@@ -221,6 +225,29 @@ describe('Model Tests', () => {
 
     expect((await Order.getMany({where: { code_1: {startsWith: 'RT-MTEST_'}}})).length).toBe(1)
     expect((await OrderItem.getMany({where: { order_id: order.id}})).length).toBe(order.items.length)
+
+    //-- Update the order
+
+    let upd = {
+      total_fee: 2200.40,
+      items: [
+        {...order.items[0].details},
+        {
+          row: 2,
+          stock_id: stock_1.id,
+          unit: stock_1.details.unit,
+          amount: 5,
+          price: 120,
+          tax_rate: 0.18
+        }
+      ]
+    }
+
+    await order.update(upd)
+
+    expect(order.items.length).toBe(upd.items.length)
+
+    //-- Remove the order
 
     expect(order.remove()).toBeDefined()
 

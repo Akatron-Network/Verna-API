@@ -106,6 +106,7 @@ export class Current {
   //-- Static util methods
 
   static async count(extra_query = {}) {
+    delete extra_query['include']
     let resp = await prisma.Current.aggregate({
       _count: true,
       ...extra_query
@@ -216,6 +217,7 @@ export class CurrentActivity {
   //* Get count of results
   //r Return integer
   static async count(extra_query = {}) {
+    delete extra_query['include']
     let resp = await prisma.CurrentActivity.aggregate({
       _count: true,
       ...extra_query
