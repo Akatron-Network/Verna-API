@@ -12,3 +12,5 @@ RedTape's Backend Server
 - Jest:29.3.1
 - Babel-Jest:29.3.1
 - BCrypt:5.1
+- Morgan:1.10
+- Winston:3.8.2

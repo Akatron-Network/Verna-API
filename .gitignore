@@ -114,4 +114,4 @@ dist
 .pnp.*
 # Keep environment variables out of version control
 .env
-.log
+*.log
