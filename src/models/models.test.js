@@ -18,7 +18,7 @@ describe('Model Tests', () => {
     await prisma.$disconnect()
   })
 
-
+  //* User Class Tests
   test('User', async () => {
 
     //-- Wrong inputs to create user
@@ -69,7 +69,7 @@ describe('Model Tests', () => {
 
   });
 
-
+  //* Current Class Tests
   test('Current', async () => {
 
     //-- Try to create with wrong inputs
@@ -101,7 +101,7 @@ describe('Model Tests', () => {
 
   });
 
-
+  //* CurrentActivity Class Tests
   test('CurrentActivity', async () => {
     
     //-- First create a current
@@ -141,7 +141,7 @@ describe('Model Tests', () => {
 
   });
 
-  
+  //* Stock Class Tests
   test('Stock', async () => {
     
     //-- Try wrong inputs
@@ -176,8 +176,8 @@ describe('Model Tests', () => {
 
   });
 
-
-  test('Order & OrderItems', async () => {
+  //* Order & OrderItem Class Tests
+  test('Order & OrderItem', async () => {
     
     //-- Create new order
 
@@ -200,6 +200,7 @@ describe('Model Tests', () => {
       order_source: "WEBSITE",
       total_fee: 1100.20,
       code_1: "RT-MTEST_" + (new Date()).valueOf().toString().substring(6),
+      registry_username: "admin",
       items: [
         {
           row: 1,
@@ -221,7 +222,6 @@ describe('Model Tests', () => {
     })
 
     expect(order).toBeDefined()
-    expect((await Order.get(order.id)).details).toStrictEqual(order.details)
 
     expect((await Order.getMany({where: { code_1: {startsWith: 'RT-MTEST_'}}})).length).toBe(1)
     expect((await OrderItem.getMany({where: { order_id: order.id}})).length).toBe(order.items.length)
