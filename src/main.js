@@ -2,23 +2,24 @@ import express from 'express'
 import { getDateString, getTimeString } from './libraries/misc.js'
 import * as dotenv from 'dotenv'
 import { registerAllRoutes } from './route_registerer.js'
-import { Current } from './models/current.js'
 import { User } from './models/user.js'
 import { Globals } from './libraries/globals.js'
+import { morganMiddleware } from './middlewares/morgan.middleware.js'
+import { logger } from './libraries/logger.js'
 dotenv.config()
 
 
 const app = express()
+app.use(morganMiddleware)
 
 var server = app.listen(8000, function () {
   registerAllRoutes(app);
-  console.log('Server listening on: 127.0.0.1:8000')
+  logger.info('Server listening on: :8000')
 
 })
 
 process.on('uncaughtException', function (err) {
-  console.error(getDateString() + ' ' + getTimeString() + ' uncaughtException')
-  console.error(err.stack)
+  logger.error('uncaughtException: ' + err.stack)
 })
 
 //* Tester admin debug token

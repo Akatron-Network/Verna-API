@@ -1,4 +1,5 @@
 import { Globals } from "../libraries/globals.js";
+import { logger } from "../libraries/logger.js";
 import { Response } from "../libraries/response.js";
 import bodyParser from 'body-parser'
 
@@ -55,7 +56,7 @@ export class Route {
   registerRoute(app) {
     app.all(this.url, bodyParser.json(), async (req, res, next) => {
       try { await this.router(req, res) } 
-      catch (e) { console.error(e.stack); Response.error(res, e.message) }
+      catch (e) { logger.error(e.stack); Response.error(res, e.message) }
     })
   }
 

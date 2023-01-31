@@ -1,3 +1,4 @@
+import { logger } from "./libraries/logger.js";
 import { Route_Login, Route_Register } from "./routes/auth.js";
 import { Route_Current, Route_CurrentActivity } from "./routes/current.js";
 import { Route_Order, Route_OrderItem } from "./routes/order.js";
