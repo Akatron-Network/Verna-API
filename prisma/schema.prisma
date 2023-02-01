@@ -26,7 +26,7 @@ model User {
   registered_stocks       Stock[]
   registered_orders       Order[]
   registered_tasks        Task[] @relation("registered_tasks")
-  registered_taskschemes  TaskStateScheme[]
+  registered_taskschemes  TaskSchema[]
   responsible_tasks       Task[] @relation("responsible_tasks")
   old_password            String?
 }
@@ -144,10 +144,10 @@ model Task {
   closed                Boolean             @default(false)
   responsible_username  String
   responsible_user      User                @relation(references: [username], fields: [responsible_username], name: "responsible_tasks")
-  state_scheme_id       Int
-  state_scheme          TaskStateScheme     @relation(references: [id], fields: [state_scheme_id])
-  current_state         String?
-  current_state_desc    String?
+  task_schema_id        Int
+  task_schema           TaskSchema          @relation(references: [id], fields: [task_schema_id])
+  current_step_id       Int
+  current_step          TaskSchemaStep      @relation(references: [id], fields: [current_step_id])
   logs                  TaskLog[]
   registry_date         DateTime            @default(now())
   registry_username     String?
@@ -165,7 +165,7 @@ model TaskLog {
   task                  Task                @relation(references: [id], fields: [task_id])
 }
 
-model TaskStateScheme {
+model TaskSchema {
   id                    Int                 @id @default(autoincrement())
   name                  String
   registry_date         DateTime            @default(now())
@@ -174,17 +174,18 @@ model TaskStateScheme {
   update_date           DateTime            @default(now())
   update_username       String?
   step_count            Int                 @default(0)
-  scheme_steps          TaskStateSchemeStep[]
+  schema_steps          TaskSchemaStep[]
   tasks                 Task[]
 }
 
-model TaskStateSchemeStep {
+model TaskSchemaStep {
   id                    Int                 @id @default(autoincrement())
-  state_scheme_id       Int
+  task_schema_id        Int
   name                  String?
-  state_scheme          TaskStateScheme     @relation(references: [id], fields: [state_scheme_id])
+  task_schema           TaskSchema          @relation(references: [id], fields: [task_schema_id])
   update_fileds         String?
   need_description      Boolean             @default(true)
   responsible_username  String?
   planned_finish_date   DateTime            @default(now())
+  active_tasks          Task[]
 }
