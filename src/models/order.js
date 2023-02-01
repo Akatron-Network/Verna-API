@@ -8,7 +8,7 @@ import {
   order_create_schema,
   order_get_schema,
   order_update_schema
-} from '../schemas/order.js'
+} from '../schemas/order.schema.js'
 
 const prisma = new PrismaClient()
 dotenv.config()

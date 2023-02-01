@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { user_register_schema, user_login_schema, user_update_schema, user_get_schema } from '../schemas/user.js'
+import { user_register_schema, user_login_schema, user_update_schema, user_get_schema } from '../schemas/user.schema.js'
 import { validate } from '../libraries/validation.js';
 import { randStr } from '../libraries/misc.js';
 import { Globals } from '../libraries/globals.js';

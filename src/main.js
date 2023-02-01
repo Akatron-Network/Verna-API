@@ -26,3 +26,11 @@ process.on('uncaughtException', function (err) {
 //! dont forget to delete before production
 Globals.auth_tokens['RT-Token_Admin'] = new User('admin', {admin: true})
 
+
+
+
+async function test() {
+  
+}
+
+test()

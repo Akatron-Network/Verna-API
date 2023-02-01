@@ -5,7 +5,7 @@ import {
   stock_create_schema, 
   stock_get_schema, 
   stock_update_schema 
-} from '../schemas/stock.js'
+} from '../schemas/stock.schema.js'
 
 const prisma = new PrismaClient()
 dotenv.config()

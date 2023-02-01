@@ -7,7 +7,7 @@ import {
   current_create_schema, 
   current_get_schema, 
   current_update_schema 
-} from '../schemas/current.js'
+} from '../schemas/current.schema.js'
 import * as dotenv from 'dotenv'
 
 const prisma = new PrismaClient()

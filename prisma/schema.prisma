@@ -11,6 +11,7 @@ datasource db {
 }
 
 
+
 model User {
   username                String      @id
   displayname             String
@@ -21,15 +22,17 @@ model User {
   register_ip             String?
   lastlogin_date          DateTime?
   lastlogin_ip            String?
+  old_password            String?
+
   registered_currents     Current[]
   registered_curr_act     CurrentActivity[]
   registered_stocks       Stock[]
   registered_orders       Order[]
   registered_tasks        Task[] @relation("registered_tasks")
-  registered_taskschemes  TaskSchema[]
-  responsible_tasks       Task[] @relation("responsible_tasks")
-  old_password            String?
+  assigned_tasks          Task[] @relation("assigned_tasks")
+  responsible_steps       TaskStep[]
 }
+
 
 model Current {
   id                    Int           @id @default(autoincrement())
@@ -49,14 +52,17 @@ model Current {
   code_2                String?
   code_3                String?
   code_4                String?
+
   registry_date         DateTime      @default(now())
   registry_username     String?
   registry_user         User?         @relation(references: [username], fields: [registry_username])
   update_date           DateTime      @default(now())
   update_username       String?
+
   activities            CurrentActivity[]
   orders                Order[]
 }
+
 
 model CurrentActivity {
   id                    Int         @id @default(autoincrement())
@@ -66,12 +72,14 @@ model CurrentActivity {
   expiry_date           DateTime
   description           String?
   balance               Float
+
   registry_date         DateTime
   registry_username     String?
   registry_user         User?       @relation(references: [username], fields: [registry_username])
   update_date           DateTime    @default(now())
   update_username       String?
 }
+
 
 model Stock {
   id                    Int         @id @default(autoincrement())
@@ -87,13 +95,16 @@ model Stock {
   code_2                String?
   code_3                String?
   code_4                String?
+
   registry_date         DateTime
   registry_username     String?
   registry_user         User?       @relation(references: [username], fields: [registry_username])
   update_date           DateTime    @default(now())
   update_username       String?
+
   orders                OrderItem[]
 }
+
 
 model Order {
   id                    Int         @id @default(autoincrement())
@@ -109,14 +120,17 @@ model Order {
   code_2                String?
   code_3                String?
   code_4                String?
+
   registry_date         DateTime    @default(now())
   registry_username     String?
   registry_user         User?       @relation(references: [username], fields: [registry_username])
   update_date           DateTime    @default(now())
   update_username       String?
+
   items                 OrderItem[]
   task                  Task?
 }
+
 
 model OrderItem {
   id                    Int         @id @default(autoincrement())
@@ -130,6 +144,7 @@ model OrderItem {
   price                 Float
   tax_rate              Float?
   description           String?
+
   registry_date         DateTime    @default(now())
   registry_username     String?
 }
@@ -139,16 +154,24 @@ model Task {
   id                    Int                 @id @default(autoincrement())
   order_id              Int                 @unique
   order                 Order               @relation(references: [id], fields: [order_id])
+
   planned_finish_date   DateTime            @default(now())
   finish_date           DateTime?
   closed                Boolean             @default(false)
-  responsible_username  String
-  responsible_user      User                @relation(references: [username], fields: [responsible_username], name: "responsible_tasks")
-  task_schema_id        Int
-  task_schema           TaskSchema          @relation(references: [id], fields: [task_schema_id])
-  current_step_id       Int
-  current_step          TaskSchemaStep      @relation(references: [id], fields: [current_step_id])
+
+  assigned_username     String
+  assigned_user         User                @relation(references: [username], fields: [assigned_username], name: "assigned_tasks")
+
+  last_step_id          Int?                @unique
+  current_step_id       Int?                @unique
+  next_step_id          Int?                @unique
+  last_step             TaskStep?           @relation(references: [id], fields: [last_step_id],     name: "last_step")
+  current_step          TaskStep?           @relation(references: [id], fields: [current_step_id],  name: "current_step")
+  next_step             TaskStep?           @relation(references: [id], fields: [next_step_id],     name: "next_step")
+
   logs                  TaskLog[]
+  task_steps            TaskStep[]
+
   registry_date         DateTime            @default(now())
   registry_username     String?
   registry_user         User?               @relation(references: [username], fields: [registry_username], name: "registered_tasks")
@@ -156,36 +179,32 @@ model Task {
   update_username       String?
 }
 
-model TaskLog {
+
+model TaskStep {
   id                    Int                 @id @default(autoincrement())
-  registry_date         DateTime            @default(now())
-  registry_username     String?
-  explanation           String?
   task_id               Int
   task                  Task                @relation(references: [id], fields: [task_id])
+  
+  order                 Int
+  name                  String
+  responsible_username  String
+  complate_description  String?
+  planned_finish_date   DateTime            @default(now())
+  start_date            DateTime?
+  complate_date         DateTime?
+
+  last_step_to          Task?               @relation("last_step")
+  current_step_to       Task?               @relation("current_step")
+  next_step_to          Task?               @relation("next_step")
+  responsible_user      User                @relation(references: [username], fields: [responsible_username])
 }
 
-model TaskSchema {
+
+model TaskLog {
   id                    Int                 @id @default(autoincrement())
-  name                  String
+  task_id               Int
+  task                  Task                @relation(references: [id], fields: [task_id])
+  explanation           String?
   registry_date         DateTime            @default(now())
   registry_username     String?
-  registry_user         User?               @relation(references: [username], fields: [registry_username])
-  update_date           DateTime            @default(now())
-  update_username       String?
-  step_count            Int                 @default(0)
-  schema_steps          TaskSchemaStep[]
-  tasks                 Task[]
-}
-
-model TaskSchemaStep {
-  id                    Int                 @id @default(autoincrement())
-  task_schema_id        Int
-  name                  String?
-  task_schema           TaskSchema          @relation(references: [id], fields: [task_schema_id])
-  update_fileds         String?
-  need_description      Boolean             @default(true)
-  responsible_username  String?
-  planned_finish_date   DateTime            @default(now())
-  active_tasks          Task[]
 }
