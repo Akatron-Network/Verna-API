@@ -25,6 +25,9 @@ model User {
   registered_curr_act     CurrentActivity[]
   registered_stocks       Stock[]
   registered_orders       Order[]
+  registered_tasks        Task[] @relation("registered_tasks")
+  registered_taskschemes  TaskStateScheme[]
+  responsible_tasks       Task[] @relation("responsible_tasks")
   old_password            String?
 }
 
@@ -112,6 +115,7 @@ model Order {
   update_date           DateTime    @default(now())
   update_username       String?
   items                 OrderItem[]
+  task                  Task?
 }
 
 model OrderItem {
@@ -128,4 +132,59 @@ model OrderItem {
   description           String?
   registry_date         DateTime    @default(now())
   registry_username     String?
+}
+
+
+model Task {
+  id                    Int                 @id @default(autoincrement())
+  order_id              Int                 @unique
+  order                 Order               @relation(references: [id], fields: [order_id])
+  planned_finish_date   DateTime            @default(now())
+  finish_date           DateTime?
+  closed                Boolean             @default(false)
+  responsible_username  String
+  responsible_user      User                @relation(references: [username], fields: [responsible_username], name: "responsible_tasks")
+  state_scheme_id       Int
+  state_scheme          TaskStateScheme     @relation(references: [id], fields: [state_scheme_id])
+  current_state         String?
+  current_state_desc    String?
+  logs                  TaskLog[]
+  registry_date         DateTime            @default(now())
+  registry_username     String?
+  registry_user         User?               @relation(references: [username], fields: [registry_username], name: "registered_tasks")
+  update_date           DateTime            @default(now())
+  update_username       String?
+}
+
+model TaskLog {
+  id                    Int                 @id @default(autoincrement())
+  registry_date         DateTime            @default(now())
+  registry_username     String?
+  explanation           String?
+  task_id               Int
+  task                  Task                @relation(references: [id], fields: [task_id])
+}
+
+model TaskStateScheme {
+  id                    Int                 @id @default(autoincrement())
+  name                  String
+  registry_date         DateTime            @default(now())
+  registry_username     String?
+  registry_user         User?               @relation(references: [username], fields: [registry_username])
+  update_date           DateTime            @default(now())
+  update_username       String?
+  step_count            Int                 @default(0)
+  scheme_steps          TaskStateSchemeStep[]
+  tasks                 Task[]
+}
+
+model TaskStateSchemeStep {
+  id                    Int                 @id @default(autoincrement())
+  state_scheme_id       Int
+  name                  String?
+  state_scheme          TaskStateScheme     @relation(references: [id], fields: [state_scheme_id])
+  update_fileds         String?
+  need_description      Boolean             @default(true)
+  responsible_username  String?
+  planned_finish_date   DateTime            @default(now())
 }
