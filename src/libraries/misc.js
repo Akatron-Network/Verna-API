@@ -61,3 +61,24 @@ export function randStr(length, enableSymbols = true) {
   return result;
 
 }
+
+
+//* Sort the array of jsons by key
+export function arraySortByKey(array, key) {
+  return array.sort(function(a, b)
+  {
+    var x = a[key]; var y = b[key];
+    return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+  });
+}
+
+//* DESC Sort the array of jsons by key
+export function descArraySortByKey(array, key) {
+  return array.sort(function(a, b)
+  {
+  var x = a[key]; var y = b[key];
+  return ((x > y) ? -1 : ((x < y) ? 1 : 0));
+  });
+}
+
+ 

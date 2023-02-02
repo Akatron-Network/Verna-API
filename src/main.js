@@ -31,18 +31,19 @@ Globals.auth_tokens['RT-Token_Admin'] = new User('admin', {admin: true})
 
 
 async function test() {
-  let task = {
+  let task_details = {
     order_id: 31,
+    description: "Test Görevi",
     assigned_username: "admin",
     task_steps: [
       {
-        order: 1,
+        row: 1,
         name: "İlk İşlem",
         responsible_username: "admin",
         planned_finish_date: "2023-02-10T00:00:00Z"
       },
       {
-        order: 2,
+        row: 2,
         name: "İkinci İşlem",
         responsible_username: "admin",
         planned_finish_date: "2023-02-10T00:00:00Z"
@@ -50,7 +51,15 @@ async function test() {
     ]
   }
 
-  console.log(Task.create(task));
+  // console.log(await Task.create(task_details));
+
+  let task = await Task.get(11)
+
+  // await task.update({
+  //   description: "Test Görevi Güncelleme"
+  // })
+
+  console.log(task)
 }
 
 test()

@@ -155,6 +155,7 @@ model Task {
   order_id              Int                 @unique
   order                 Order               @relation(references: [id], fields: [order_id])
 
+  description           String?
   planned_finish_date   DateTime            @default(now())
   finish_date           DateTime?
   closed                Boolean             @default(false)
@@ -183,11 +184,11 @@ model Task {
 model TaskStep {
   id                    Int                 @id @default(autoincrement())
   task_id               Int
-  task                  Task                @relation(references: [id], fields: [task_id])
+  task                  Task                @relation(references: [id], fields: [task_id], onDelete: Cascade)
   
-  order                 Int
+  row                   Int
   name                  String
-  responsible_username  String
+  responsible_username  String?
   complate_description  String?
   planned_finish_date   DateTime            @default(now())
   start_date            DateTime?
@@ -196,14 +197,14 @@ model TaskStep {
   last_step_to          Task?               @relation("last_step")
   current_step_to       Task?               @relation("current_step")
   next_step_to          Task?               @relation("next_step")
-  responsible_user      User                @relation(references: [username], fields: [responsible_username])
+  responsible_user      User?               @relation(references: [username], fields: [responsible_username])
 }
 
 
 model TaskLog {
   id                    Int                 @id @default(autoincrement())
   task_id               Int
-  task                  Task                @relation(references: [id], fields: [task_id])
+  task                  Task                @relation(references: [id], fields: [task_id], onDelete: Cascade)
   explanation           String?
   registry_date         DateTime            @default(now())
   registry_username     String?
