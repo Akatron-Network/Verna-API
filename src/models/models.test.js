@@ -4,6 +4,7 @@ import { Globals } from "../libraries/globals";
 import { Current, CurrentActivity } from "./current";
 import { Stock } from "./stock";
 import { Order, OrderItem } from "./order";
+import { Task } from "./task";
 
 describe('Model Tests', () => {
 
@@ -253,4 +254,94 @@ describe('Model Tests', () => {
 
   });
 
+  test('Task', async () => {
+    //-- Create new order
+
+    let current = await Current.create({
+      name: "RT-MTEST_" +  + (new Date()).valueOf().toString().substring(5)
+    })
+
+    let stock_1 = await Stock.create({
+      name: "RT-MTEST_1" + (new Date()).valueOf().toString().substring(6),
+      unit: "M2"
+    })
+
+    let stock_2 = await Stock.create({
+      name: "RT-MTEST_2" + (new Date()).valueOf().toString().substring(6),
+      unit: "PK"
+    })
+
+    let order = await Order.create({
+      current_id: current.id,
+      order_source: "WEBSITE",
+      total_fee: 1100.20,
+      code_1: "RT-MTEST_" + (new Date()).valueOf().toString().substring(6),
+      registry_username: "admin",
+      items: [
+        {
+          row: 1,
+          stock_id: stock_1.id,
+          unit: stock_1.details.unit,
+          amount: 2,
+          price: 100,
+          tax_rate: 0.18
+        },
+        {
+          row: 2,
+          stock_id: stock_2.id,
+          unit: stock_2.details.unit,
+          amount: 3,
+          price: 25,
+          tax_rate: 0.18
+        }
+      ]
+    })
+
+    expect(order).toBeDefined()
+
+    //-- Create a new task
+
+    let task = await Task.create({
+      order_id: order.id,
+      description: "Test Task",
+      assigned_username: "admin",
+      task_steps: [
+        {
+          row: 1,
+          name: "First Step to the moon",
+          responsible_username: "admin",
+          planned_finish_date: "2023-02-10T00:00:00Z"
+        },
+        {
+          row: 2,
+          name: "Second Step to the mars",
+          responsible_username: "admin",
+          planned_finish_date: "2023-02-10T00:00:00Z"
+        }
+      ]
+    })
+
+    expect(task).toBeDefined()
+    expect(task.task_steps).toStrictEqual((await Task.get(task.id)).task_steps)
+
+    await task.complateStep({
+      complate_description: "I reached to the moon!",
+      registry_username: "admin"
+    })
+
+    expect(task.details.current_step.row).toBe(2)
+    expect(task.details.previous_step.row).toBe(1)
+    expect(task.details.next_step).toBe(null)
+
+    await task.complateStep({
+      complate_description: "I finally reached to the mars OMG!",
+      registry_username: "admin"
+    })
+
+    expect(task.details.current_step).toBe(null)
+    expect(task.details.previous_step.row).toBe(2)
+    expect(task.details.next_step).toBe(null)
+    expect(task.details.closed).toBe(true)
+
+  });
 });

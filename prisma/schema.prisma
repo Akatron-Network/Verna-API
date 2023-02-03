@@ -153,20 +153,21 @@ model OrderItem {
 model Task {
   id                    Int                 @id @default(autoincrement())
   order_id              Int                 @unique
-  order                 Order               @relation(references: [id], fields: [order_id])
+  order                 Order               @relation(references: [id], fields: [order_id], onDelete: Cascade)
 
   description           String?
   planned_finish_date   DateTime            @default(now())
   finish_date           DateTime?
   closed                Boolean             @default(false)
+  state                 String              @default("Aktif")
 
   assigned_username     String
   assigned_user         User                @relation(references: [username], fields: [assigned_username], name: "assigned_tasks")
 
-  last_step_id          Int?                @unique
+  previous_step_id      Int?                @unique
   current_step_id       Int?                @unique
   next_step_id          Int?                @unique
-  last_step             TaskStep?           @relation(references: [id], fields: [last_step_id],     name: "last_step")
+  previous_step         TaskStep?           @relation(references: [id], fields: [previous_step_id],     name: "previous_step")
   current_step          TaskStep?           @relation(references: [id], fields: [current_step_id],  name: "current_step")
   next_step             TaskStep?           @relation(references: [id], fields: [next_step_id],     name: "next_step")
 
@@ -194,7 +195,7 @@ model TaskStep {
   start_date            DateTime?
   complate_date         DateTime?
 
-  last_step_to          Task?               @relation("last_step")
+  previous_step_to      Task?               @relation("previous_step")
   current_step_to       Task?               @relation("current_step")
   next_step_to          Task?               @relation("next_step")
   responsible_user      User?               @relation(references: [username], fields: [responsible_username])

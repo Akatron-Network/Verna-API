@@ -40,6 +40,7 @@ export var task_step_update_schema = {
   properties: {
     row                   : { type: "integer" },
     name                  : { type: "string", maxLength: 100 },
+    state                 : { type: "string" },
     responsible_username  : { type: "string" },
     planned_finish_date   : { type: "string", format: "date-time" },
     complate_description  : { type: "string", maxLength: 500 },
@@ -60,14 +61,35 @@ export var task_log_update_schema = {
 export var task_update_schema = {
   type: "object",
   properties: {
-    description            : { type: "string", maxLength: 500 },
+    description           : { type: "string", maxLength: 500 },
     planned_finish_date   : { type: "string", format: "date-time" },
     assigned_username     : { type: "string" },
-    last_step_id          : { type: "integer" },
+    previous_step_id      : { type: "integer" },
     current_step_id       : { type: "integer" },
     next_step_id          : { type: "integer" },
     update_date           : { type: "string", format: "date-time" },
     update_username       : { type: "string" },
+  },
+  additionalProperties: false
+}
+
+
+
+export var task_step_complate_schema = {
+  type: "object",
+  properties: {
+    complate_description  : { type: "string", maxLength: 500 },
+    registry_username     : { type: "string" },
+  },
+  additionalProperties: false
+}
+
+
+export var task_step_cancel_schema = {
+  type: "object",
+  properties: {
+    description           : { type: "string", maxLength: 500 },
+    registry_username     : { type: "string" },
   },
   additionalProperties: false
 }

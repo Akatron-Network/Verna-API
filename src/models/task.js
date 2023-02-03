@@ -5,6 +5,8 @@ import { arraySortByKey } from '../libraries/misc.js'
 import { 
   task_create_schema, 
   task_get_schema, 
+  task_step_cancel_schema, 
+  task_step_complate_schema, 
   task_update_schema 
 } from '../schemas/task.schema.js'
 
@@ -26,7 +28,7 @@ export class Task {
       where: { id: this.id },
       include: {
         task_steps: true,
-        last_step: true,
+        previous_step: true,
         current_step: true,
         next_step: true,
         logs: true
@@ -45,7 +47,7 @@ export class Task {
       data: details,
       include: {
         task_steps: true,
-        last_step: true,
+        previous_step: true,
         current_step: true,
         next_step: true,
         logs: true
@@ -56,8 +58,104 @@ export class Task {
     return this
   }
 
+  async getStepByRow(row) {
+    if (!this.details) await this.init()
+    for (let step of this.details.task_steps) {
+      if (step.row === row) return step
+    }
+    return null
+  }
 
-  
+  //* Complate current step
+  async complateStep (details) {
+    validate(details, task_step_complate_schema)
+    if (!this.details) await this.init()
+
+    let next_step_id = this.details.next_step_id                      //. get next step id
+    let current_step_id = this.details.current_step_id                //. get current step id
+    if (!current_step_id) throw new Error('Current step not found')   //r if not have current throw error
+
+    let new_next_step_id = await this.getStepByRow(this.details.current_step.row + 2)
+
+    //todo set new responsible user
+
+    let log = {
+      explanation: this.details.current_step.row + ". adım tamamlandı",     //. log explanation
+      registry_date: new Date(),                                            //. log date
+      registry_username: details.registry_username                          //. log registry
+    }
+
+    let upres = await prisma.Task.update({                            //d update task with new step status
+      where: { id: this.id },
+      data: {
+        current_step_id: next_step_id,
+        previous_step_id: current_step_id,
+        next_step_id: new_next_step_id,
+        task_steps: {
+          update: {
+            where: { id: current_step_id },
+            data: { complate_description: details.complate_description, complate_date: new Date() }
+          }
+        },
+        logs: { create: [log] }
+      },
+      include: {
+        task_steps: true,
+        previous_step: true,
+        current_step: true,
+        next_step: true,
+        logs: true
+      }
+    })
+
+    this.details = upres
+    if (this.details.current_step_id === null) await this.complateTask()    //d complate task if no more steps
+    return this
+  }
+
+  async cancelStep (details) {
+    validate(details, task_step_cancel_schema)
+    if (!this.details) await this.init()
+
+    if (this.previous_step_id === null) throw new Error('No previous step found, cant cancel the step')
+
+    let prev_step_id = this.previous_step_id
+    let current_step_id = this.current_step_id
+    let new_prev_step_id = await this.getStepByRow(this.details.current_step.row - 2)
+
+
+
+  }
+
+  //* Complate Task
+  async complateTask () {
+    let log = {
+      explanation: "Görev tamamlandı",
+      registry_date: new Date()
+    }
+    let upres = await prisma.Task.update({
+      where: { id: this.id },
+      data: {
+        closed: true,
+        state: "Tamamlandı",
+        logs: { create: [log] }
+      },
+      include: {
+        task_steps: true,
+        previous_step: true,
+        current_step: true,
+        next_step: true,
+        logs: true
+      }
+    })
+    this.details = upres
+    return this
+  }
+
+  //todo    cancel task
+  //todo    delete
+
+
   //-- Static Construct Methods
 
   //* Create new Task
@@ -109,6 +207,7 @@ export class Task {
     n_task.current_step = n_task.task_steps[0]
     n_task.next_step_id = next_step
     n_task.next_step = (steps.length > 1) ? n_task.task_steps[1] : null
+    n_task.previous_step = null
     
     return new Task(n_task.id, n_task)                            //r return Task object
 

@@ -53,13 +53,17 @@ async function test() {
 
   // console.log(await Task.create(task_details));
 
-  let task = await Task.get(11)
+  // let task = await Task.get(12)
 
   // await task.update({
   //   description: "Test Görevi Güncelleme"
   // })
 
-  console.log(task)
+  // console.log(task)
+
+  // await task.complateStep({complate_description: "Tamam"})
+
+  // console.log(task);
 }
 
 test()
