@@ -161,8 +161,8 @@ model Task {
   closed                Boolean             @default(false)
   state                 String              @default("Aktif")
 
-  assigned_username     String
-  assigned_user         User                @relation(references: [username], fields: [assigned_username], name: "assigned_tasks")
+  assigned_username     String?
+  assigned_user         User?               @relation(references: [username], fields: [assigned_username], name: "assigned_tasks")
 
   previous_step_id      Int?                @unique
   current_step_id       Int?                @unique

@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv'
 import { validate } from '../libraries/validation.js'
 import { arraySortByKey } from '../libraries/misc.js'
 import { 
+  task_cancel_schema,
   task_create_schema, 
   task_get_schema, 
   task_step_cancel_schema, 
@@ -76,8 +77,7 @@ export class Task {
     if (!current_step_id) throw new Error('Current step not found')   //r if not have current throw error
 
     let new_next_step_id = await this.getStepByRow(this.details.current_step.row + 2)
-
-    //todo set new responsible user
+    let new_resp_user = (this.details.next_step) ? this.details.next_step.responsible_username : null
 
     let log = {
       explanation: this.details.current_step.row + ". adım tamamlandı",     //. log explanation
@@ -88,6 +88,7 @@ export class Task {
     let upres = await prisma.Task.update({                            //d update task with new step status
       where: { id: this.id },
       data: {
+        assigned_username: new_resp_user,
         current_step_id: next_step_id,
         previous_step_id: current_step_id,
         next_step_id: new_next_step_id,
@@ -113,18 +114,47 @@ export class Task {
     return this
   }
 
+  //* Cancel current step
   async cancelStep (details) {
     validate(details, task_step_cancel_schema)
     if (!this.details) await this.init()
 
     if (this.previous_step_id === null) throw new Error('No previous step found, cant cancel the step')
 
-    let prev_step_id = this.previous_step_id
-    let current_step_id = this.current_step_id
-    let new_prev_step_id = await this.getStepByRow(this.details.current_step.row - 2)
+    let prev_step_id = this.details.previous_step_id
+    let current_step_id = this.details.current_step_id
+    let new_prev_step_row = (this.details.current_step) ? this.details.current_step.row - 2 : this.details.previous_step.row - 1
+    let new_prev_step_id = (await this.getStepByRow(new_prev_step_row)).id
+    let new_resp_user = this.details.previous_step.responsible_username
 
+    let log = {
+      explanation: this.details.previous_step.row + ". adıma geri dönüldü\n" + details.description,
+      registry_date: new Date(),
+      registry_username: details.registry_username
+    }
 
+    let upres = await prisma.Task.update({
+      where: { id: this.id },
+      data: {
+        assigned_username: new_resp_user,
+        current_step_id: prev_step_id,
+        previous_step_id: new_prev_step_id,
+        next_step_id: current_step_id,
+        closed: false,
+        state: "Aktif",
+        logs: { create: [log]}
+      },
+      include: {
+        task_steps: true,
+        previous_step: true,
+        current_step: true,
+        next_step: true,
+        logs: true
+      }
+    })
 
+    this.details = upres
+    return this
   }
 
   //* Complate Task
@@ -152,8 +182,67 @@ export class Task {
     return this
   }
 
-  //todo    cancel task
-  //todo    delete
+  //* Cancel Task
+  async cancelTask  (details) {
+    validate(details, task_cancel_schema)
+
+    let log = {
+      explanation: "Görev iptal edildi \n" + details.description,
+      registry_date: new Date(),
+      registry_username: details.registry_username
+    }
+    let upres = await prisma.Task.update({
+      where: { id: this.id },
+      data: {
+        closed: true,
+        state: "İptal Edildi",
+        logs: { create: [log] }
+      },
+      include: {
+        task_steps: true,
+        previous_step: true,
+        current_step: true,
+        next_step: true,
+        logs: true
+      }
+    })
+    this.details = upres
+    return this
+  }
+
+  //* ReOpen Task
+  async reOpenTask (details) {
+    validate(details, task_cancel_schema)
+
+    let log = {
+      explanation: "Görev tekrar açıldı \n" + details.description,
+      registry_date: new Date(),
+      registry_username: details.registry_username
+    }
+    let upres = await prisma.Task.update({
+      where: { id: this.id },
+      data: {
+        closed: false,
+        state: "Aktif",
+        logs: { create: [log] }
+      },
+      include: {
+        task_steps: true,
+        previous_step: true,
+        current_step: true,
+        next_step: true,
+        logs: true
+      }
+    })
+    this.details = upres
+    return this
+  }
+
+  //* Delete Task
+  async delete () {
+    if (!this.details) await this.init()
+    return await prisma.Task.delete({where: {id: this.id}})
+  }
 
 
   //-- Static Construct Methods

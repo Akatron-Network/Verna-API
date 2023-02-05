@@ -6,16 +6,18 @@ import { User } from './models/user.js'
 import { Globals } from './libraries/globals.js'
 import { morganMiddleware } from './middlewares/morgan.middleware.js'
 import { logger } from './libraries/logger.js'
+import cors from 'cors'
 import { Task } from './models/task.js'
 dotenv.config()
 
 
 const app = express()
 app.use(morganMiddleware)
+app.use(cors())
 
-var server = app.listen(8000, function () {
+var server = app.listen(parseInt(process.env.APP_PORT), function () {
   registerAllRoutes(app);
-  logger.info('Server listening on: :8000')
+  logger.info('Server listening on: :' + parseInt(process.env.APP_PORT))
 
 })
 

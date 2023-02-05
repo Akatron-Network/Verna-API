@@ -324,6 +324,8 @@ describe('Model Tests', () => {
     expect(task).toBeDefined()
     expect(task.task_steps).toStrictEqual((await Task.get(task.id)).task_steps)
 
+    //-- Complate steps
+
     await task.complateStep({
       complate_description: "I reached to the moon!",
       registry_username: "admin"
@@ -342,6 +344,25 @@ describe('Model Tests', () => {
     expect(task.details.previous_step.row).toBe(2)
     expect(task.details.next_step).toBe(null)
     expect(task.details.closed).toBe(true)
+
+    //-- Cancel last step then complate again
+
+    await task.cancelStep({
+      description: "I didnt reached, thats a lie",
+      registry_username: "admin"
+    })
+
+    await task.complateStep({
+      complate_description: "This time i did it!!",
+      registry_username: "admin"
+    })
+
+    expect(task.details.current_step).toBe(null)
+    expect(task.details.previous_step.row).toBe(2)
+    expect(task.details.next_step).toBe(null)
+    expect(task.details.closed).toBe(true)
+
+    expect(await task.delete()).toBeDefined()
 
   });
 });

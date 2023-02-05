@@ -93,3 +93,13 @@ export var task_step_cancel_schema = {
   },
   additionalProperties: false
 }
+
+
+export var task_cancel_schema = {
+  type: "object",
+  properties: {
+    description           : { type: "string", maxLength: 500 },
+    registry_username     : { type: "string" },
+  },
+  additionalProperties: false
+}

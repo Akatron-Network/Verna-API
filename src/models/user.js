@@ -71,7 +71,7 @@ export class User {
   async update(details) {
     validate(details, user_update_schema)
 
-    if (!this.details) await this.initDetails()
+    if (!this.user_details) await this.initDetails()
 
     if (details.password) details.password = await bcrypt.hash(details.password, parseInt(process.env.HASH_SALT_ROUNDS))
 
