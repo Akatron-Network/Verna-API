@@ -313,4 +313,41 @@ export class Task {
     return task
   }
   
+  //* Get Tasks with query
+  //r Returns array of Task objects
+  static async getMany (query, pagination = true) {
+    if (pagination) {
+      if (!query.skip) query.skip = 0
+      if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
+    }
+
+    if (!query.select || !query.include) {
+      query.include = {
+        task_steps: true,
+        previous_step: true,
+        current_step: true,
+        next_step: true,
+        logs: true
+      }
+    }
+
+    let resps = await prisma.Task.findMany(query)
+    return resps.map(r => new Task(r.id, r))
+  }
+
+  
+  //-- Static util methods
+
+  //* Get count of results
+  //r Return integer
+  static async count(extra_query = {}) {
+    delete extra_query['include']
+    let resp = await prisma.Task.aggregate({
+      _count: true,
+      ...extra_query
+    })
+    if (resp === null) return 0
+    return resp['_count']
+  }
+
 }

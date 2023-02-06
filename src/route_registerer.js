@@ -3,6 +3,7 @@ import { Route_Login, Route_Register } from "./routes/auth.js";
 import { Route_Current, Route_CurrentActivity } from "./routes/current.js";
 import { Route_Order, Route_OrderItem } from "./routes/order.js";
 import { Route_Stock } from "./routes/stock.js";
+import { Route_Task } from "./routes/task.js";
 import { Route_User } from "./routes/user.js";
 
 var routes = [
@@ -14,7 +15,7 @@ var routes = [
   new Route_User(),
   new Route_Order(),
   new Route_OrderItem(),
-  
+  new Route_Task(),
 
   //! Add route registirations here!
 ]
