@@ -79,7 +79,7 @@ export class Task {
     if (!current_step_id) throw new Error('Current step not found')   //r if not have current throw error
 
     let new_next_step_id = await this.getStepByRow(this.details.current_step.row + 2)
-    let new_resp_user = (this.details.next_step) ? this.details.next_step.responsible_username : null
+    let new_resp_user = (this.details.next_step) ? this.details.next_step.responsible_username : undefined
 
     let log = {
       explanation: this.details.current_step.row + ". adım tamamlandı",     //. log explanation
@@ -121,7 +121,7 @@ export class Task {
     validate(details, task_step_cancel_schema)
     if (!this.details) await this.init()
 
-    if (this.previous_step_id === null || !this.prev_step_id) throw new Error('No previous step found, cant cancel the step')
+    if (this.details.previous_step_id === null || !this.details.previous_step_id) throw new Error('No previous step found, cant cancel the step')
 
     let prev_step_id = this.details.previous_step_id
     let current_step_id = this.details.current_step_id
