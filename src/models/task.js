@@ -35,6 +35,7 @@ export class Task {
         logs: true
       }
     })
+    if (this.details === null) throw new Error('Task not found: ' + this.id)
     return this;
   }
 
@@ -59,6 +60,7 @@ export class Task {
     return this
   }
 
+  //* Get Step by Row
   async getStepByRow(row) {
     if (!this.details) await this.init()
     for (let step of this.details.task_steps) {
@@ -119,12 +121,12 @@ export class Task {
     validate(details, task_step_cancel_schema)
     if (!this.details) await this.init()
 
-    if (this.previous_step_id === null) throw new Error('No previous step found, cant cancel the step')
+    if (this.previous_step_id === null || !this.prev_step_id) throw new Error('No previous step found, cant cancel the step')
 
     let prev_step_id = this.details.previous_step_id
     let current_step_id = this.details.current_step_id
     let new_prev_step_row = (this.details.current_step) ? this.details.current_step.row - 2 : this.details.previous_step.row - 1
-    let new_prev_step_id = (await this.getStepByRow(new_prev_step_row)).id
+    let new_prev_step_id = (new_prev_step_row > 0) ? (await this.getStepByRow(new_prev_step_row)).id : null
     let new_resp_user = this.details.previous_step.responsible_username
 
     let log = {
@@ -239,7 +241,7 @@ export class Task {
   }
 
   //* Delete Task
-  async delete () {
+  async remove () {
     if (!this.details) await this.init()
     return await prisma.Task.delete({where: {id: this.id}})
   }

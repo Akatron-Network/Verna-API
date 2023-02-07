@@ -362,7 +362,7 @@ describe('Model Tests', () => {
     expect(task.details.next_step).toBe(null)
     expect(task.details.closed).toBe(true)
 
-    expect(await task.delete()).toBeDefined()
+    expect(await task.remove()).toBeDefined()
 
   });
 });
