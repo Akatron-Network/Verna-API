@@ -106,7 +106,8 @@ export class Order {
     if (!this.items || !this.details) await this.init()
 
     let total_fee = this.items.reduce( function (accVar, currVal) {
-      return accVar + (currVal.details.amount * currVal.details.price)
+      let tax_rate = ((currVal.details.tax_rate !== null ? currVal.details.tax_rate : 0) + 1)
+      return accVar + (currVal.details.amount * currVal.details.price * tax_rate)
     }, 0)
 
     await this.update({total_fee})
