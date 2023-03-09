@@ -32,7 +32,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
     if (this.details === null) throw new Error('Task not found: ' + this.id)
@@ -52,7 +53,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
 
@@ -107,7 +109,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
 
@@ -151,7 +154,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
 
@@ -177,7 +181,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
     this.details = upres
@@ -205,7 +210,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
     this.details = upres
@@ -233,7 +239,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     })
     this.details = upres
@@ -280,7 +287,7 @@ export class Task {
         ...details, 
         task_steps: { create: steps }, 
         logs: { create: [log]} },
-      include: { task_steps: true, logs: true }
+      include: { task_steps: true, logs: true, order: { include: { items: true } } }
     })
 
     let curr_step = n_task.task_steps[0].id                                                 //. get first step as current
@@ -329,7 +336,8 @@ export class Task {
         previous_step: true,
         current_step: true,
         next_step: true,
-        logs: true
+        logs: true,
+        order: { include: { items: true } }
       }
     }
 
