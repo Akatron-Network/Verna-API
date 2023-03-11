@@ -174,7 +174,7 @@ export class Task {
       data: {
         closed: true,
         state: "Tamamlandı",
-        previous_step_id: this.details.current_step_id,
+        previous_step_id: (this.details.current_step_id !== null ? this.details.current_step_id : undefined),
         current_step_id: null,
         logs: { create: [log] }
       },
@@ -234,6 +234,9 @@ export class Task {
       data: {
         closed: false,
         state: "Aktif",
+        previous_step_id: null,
+        current_step_id: this.details.task_steps[0].id,
+        next_step_id: (this.details.task_steps[1] ? this.details.task_steps[1].id : null),
         logs: { create: [log] }
       },
       include: {
