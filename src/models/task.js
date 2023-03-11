@@ -133,7 +133,7 @@ export class Task {
     let new_resp_user = this.details.previous_step.responsible_username
 
     let log = {
-      explanation: this.details.previous_step.row + ". adıma geri dönüldü\n" + details.description,
+      explanation: this.details.previous_step.row + ". adıma geri dönüldü. " + details.description,
       registry_date: new Date(),
       registry_username: details.registry_username
     }
@@ -166,7 +166,7 @@ export class Task {
   //* Complate Task
   async complateTask () {
     let log = {
-      explanation: "Görev tamamlandı",
+      explanation: "Görev tamamlandı.",
       registry_date: new Date()
     }
     let upres = await prisma.Task.update({
@@ -174,6 +174,8 @@ export class Task {
       data: {
         closed: true,
         state: "Tamamlandı",
+        previous_step_id: this.details.current_step_id,
+        current_step_id: null,
         logs: { create: [log] }
       },
       include: {
@@ -194,7 +196,7 @@ export class Task {
     validate(details, task_cancel_schema)
 
     let log = {
-      explanation: "Görev iptal edildi \n" + details.description,
+      explanation: "Görev iptal edildi. " + details.description,
       registry_date: new Date(),
       registry_username: details.registry_username
     }
@@ -223,7 +225,7 @@ export class Task {
     validate(details, task_cancel_schema)
 
     let log = {
-      explanation: "Görev tekrar açıldı \n" + details.description,
+      explanation: "Görev tekrar açıldı. " + details.description,
       registry_date: new Date(),
       registry_username: details.registry_username
     }
