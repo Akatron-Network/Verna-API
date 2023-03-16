@@ -73,6 +73,11 @@ model CurrentActivity {
   description           String?
   balance               Float
 
+  debt_order_id         Int?        @unique
+  debt_order            Order?      @relation(fields: [debt_order_id], references: [id], name: "debt", onDelete: Cascade)
+  credit_order_id       Int?        @unique
+  credit_order          Order?      @relation(fields: [credit_order_id], references: [id], name: "credit", onDelete: Cascade)
+
   registry_date         DateTime
   registry_username     String?
   registry_user         User?       @relation(references: [username], fields: [registry_username])
@@ -120,6 +125,9 @@ model Order {
   code_2                String?
   code_3                String?
   code_4                String?
+
+  debt_current_act      CurrentActivity?  @relation(name: "debt")
+  credit_current_act    CurrentActivity?  @relation(name: "credit")
 
   registry_date         DateTime    @default(now())
   registry_username     String?

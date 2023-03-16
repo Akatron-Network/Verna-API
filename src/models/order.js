@@ -65,7 +65,15 @@ export class Order {
 
     let upres = await prisma.Order.update({
       where: { id: this.id },
-      data: {...update_data, items: undefined}
+      data: {
+        ...update_data, 
+        items: undefined,
+        debt_current_act: {
+          update: {
+            balance: -1 * update_data.total_fee
+          }
+        }
+      }
     })
 
     this.details = upres
@@ -128,7 +136,24 @@ export class Order {
 
     new_order.registry_date = new Date()
 
-    let cresp = await prisma.Order.create({data: {...new_order, items: undefined}})
+    let cresp = await prisma.Order.create({
+      data: {
+        ...new_order, 
+        items: undefined,
+        debt_current_act: {
+          create: {
+            current_id: new_order.current_id,
+            date: new Date(),
+            expiry_date: new Date(),
+            description: "Sipariş",
+            balance: -1 * new_order.total_fee,
+            registry_date: new Date(),
+            registry_username: new_order.registry_username
+          }
+        }
+      },
+      include: {debt_current_act: true}
+    })
     let order = new Order(cresp.id, cresp)
     order.items = []
 
