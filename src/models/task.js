@@ -342,7 +342,7 @@ export class Task {
         current_step: true,
         next_step: true,
         logs: true,
-        order: { include: { items: true } }
+        order: { include: { items: true, credit_current_act: true, debt_current_act: true } }
       }
     }
 

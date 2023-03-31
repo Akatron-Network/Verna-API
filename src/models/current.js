@@ -208,8 +208,33 @@ export class CurrentActivity {
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
+    if (!query.orderBy) query.orderBy = []
+    query.orderBy = [...query.orderBy, {date: "asc"}, {id: "asc"}]
+
     let resps = await prisma.CurrentActivity.findMany(query)
-    return resps.map(r => new CurrentActivity(r.id, r))
+
+    //* First cumulative balance calculation
+    if (resps.length > 0) {
+      let first_cu_bal = await prisma.CurrentActivity.aggregate({
+        _sum: {
+          balance: true
+        },
+        where: {
+          current_id: resps[0].current_id,
+          date: { lte: resps[0].date },
+          registry_date: { lte: resps[0].registry_date }
+        }
+      })
+      resps[0].cumulative_balance = first_cu_bal['_sum'].balance
+    }
+    
+    //* Rest cumulative balance calculation
+    for (let ri in resps) {
+      if (parseInt(ri) === 0) continue
+      resps[ri].cumulative_balance = resps[parseInt(ri)-1].cumulative_balance + resps[ri].balance
+    }
+
+    return resps.map((r) => new CurrentActivity(r.id, r))
   }
 
   //-- Static util methods

@@ -156,7 +156,7 @@ export class Route_CurrentActivity extends Route {
     if (!body) throw new Error('Body cannot be empty')
 
     body.registry_username = user.username
-
+    
     let current = await CurrentActivity.create(body)
 
     return Response.success(res, current, {Meta: Route.generateMeta(res.req)})

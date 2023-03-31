@@ -74,9 +74,9 @@ model CurrentActivity {
   balance               Float
 
   debt_order_id         Int?        @unique
-  debt_order            Order?      @relation(fields: [debt_order_id], references: [id], name: "debt", onDelete: Cascade)
+  debt_order            Order?      @relation(fields: [debt_order_id], references: [id], name: "debt", onDelete: Cascade, onUpdate: Restrict)
   credit_order_id       Int?        @unique
-  credit_order          Order?      @relation(fields: [credit_order_id], references: [id], name: "credit", onDelete: Cascade)
+  credit_order          Order?      @relation(fields: [credit_order_id], references: [id], name: "credit", onDelete: Cascade, onUpdate: Restrict)
 
   registry_date         DateTime
   registry_username     String?
@@ -114,7 +114,7 @@ model Stock {
 model Order {
   id                    Int         @id @default(autoincrement())
   current_id            Int
-  current               Current     @relation(references: [id], fields: [current_id])
+  current               Current     @relation(references: [id], fields: [current_id], onDelete: Cascade)
   date                  DateTime    @default(now())
   delivery_date         DateTime    @default(now())
   order_source          String?
@@ -146,7 +146,7 @@ model OrderItem {
   order_id              Int
   order                 Order       @relation(references: [id], fields: [order_id], onDelete: Cascade)
   stock_id              Int
-  stock                 Stock       @relation(references: [id], fields: [stock_id])
+  stock                 Stock       @relation(references: [id], fields: [stock_id], onDelete: Cascade)
   unit                  String?
   amount                Float
   price                 Float

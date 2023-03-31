@@ -63,18 +63,36 @@ export class Order {
 
     update_data.update_date = new Date()
 
-    let upres = await prisma.Order.update({
-      where: { id: this.id },
-      data: {
-        ...update_data, 
-        items: undefined,
-        debt_current_act: {
-          update: {
-            balance: -1 * update_data.total_fee
+    let upres = this.details
+
+    try {
+      upres = await prisma.Order.update({
+        where: { id: this.id },
+        data: {
+          ...update_data, 
+          items: undefined,
+          debt_current_act: {
+            update: {
+              balance: update_data.total_fee
+            }
           }
         }
+      })
+    }
+    catch (e) {
+      try {
+        upres = await prisma.Order.update({
+          where: { id: this.id },
+          data: {
+            ...update_data, 
+            items: undefined
+          }
+        })
       }
-    })
+      catch (e) {
+        console.error(e);
+      }
+    }
 
     this.details = upres
 
@@ -146,7 +164,7 @@ export class Order {
             date: new Date(),
             expiry_date: new Date(),
             description: "Sipariş",
-            balance: -1 * new_order.total_fee,
+            balance: new_order.total_fee,
             registry_date: new Date(),
             registry_username: new_order.registry_username
           }

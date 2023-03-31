@@ -65,6 +65,8 @@ export var current_activity_create_schema = {
     expiry_date: { type: "string", format: "date-time" },
     description: { type: "string", maxLength: 250 },
     balance: { type: "number" },
+    debt_order_id: { type: "integer" },
+    credit_order_id: { type: "integer" },
     registry_date: { type: "string", format: "date-time" },
     registry_username: { type: "string" },
   },
