@@ -5,6 +5,7 @@ import { Current, CurrentActivity } from "./current";
 import { Stock } from "./stock";
 import { Order, OrderItem } from "./order";
 import { Task } from "./task";
+import { Offer } from "./offer";
 
 describe('Model Tests', () => {
 
@@ -13,8 +14,9 @@ describe('Model Tests', () => {
     const prisma = new PrismaClient()
     await prisma.User.deleteMany({ where: { username: { startsWith: "test_" } } })    //d clear user data
     await prisma.Order.deleteMany({ where: { code_1: { startsWith: "RT-MTEST_" } } })
+    await prisma.Offer.deleteMany({ where: { code_1: { startsWith: "RT-MTEST_" } } })
     await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
-    await prisma.Stock.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear current data
+    await prisma.Stock.deleteMany({ where: { name: { startsWith: "RT-MTEST_" } } })  //d clear stock data
 
     await prisma.$disconnect()
   })
@@ -254,6 +256,7 @@ describe('Model Tests', () => {
 
   });
 
+  //* Task Class Tests
   test('Task', async () => {
     //-- Create new order
 
@@ -365,4 +368,74 @@ describe('Model Tests', () => {
     expect(await task.remove()).toBeDefined()
 
   });
+
+  //* Offer Class Tests
+  test('Offer', async () => {
+    let stock_1 = await Stock.create({
+      name: "RT-MTEST_1" + (new Date()).valueOf().toString().substring(6),
+      unit: "M2"
+    })
+
+    let stock_2 = await Stock.create({
+      name: "RT-MTEST_2" + (new Date()).valueOf().toString().substring(6),
+      unit: "PK"
+    })
+
+    let offer = await Offer.create({
+      unregistered_current: {
+        name: "TESTER UNREG CURRENT",
+        mail: "test@gmail.com",
+        phone: "5550000000"
+      },
+      order_source: "WEBSITE",
+      total_fee: 1100.20,
+      code_1: "RT-MTEST_" + (new Date()).valueOf().toString().substring(6),
+      registry_username: "admin",
+      items: [
+        {
+          row: 1,
+          stock_id: stock_1.id,
+          unit: stock_1.details.unit,
+          amount: 2,
+          price: 100,
+          tax_rate: 0.18
+        },
+        {
+          row: 2,
+          stock_id: stock_2.id,
+          unit: stock_2.details.unit,
+          amount: 3,
+          price: 25,
+          tax_rate: 0.18
+        }
+      ]
+    })
+    
+    expect(offer).toBeDefined()
+
+    let upd = {
+      total_fee: 2200.40,
+      items: [
+        {...offer.items[0].details},
+        {
+          row: 2,
+          stock_id: stock_1.id,
+          unit: stock_1.details.unit,
+          amount: 5,
+          price: 120,
+          tax_rate: 0.18
+        }
+      ]
+    }
+
+    await offer.update(upd)
+
+    expect(offer.items.length).toBe(upd.items.length)
+
+    //-- Remove the Offer
+
+    expect(offer.remove()).toBeDefined()
+
+  });
+
 });

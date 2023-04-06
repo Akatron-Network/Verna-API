@@ -6,6 +6,7 @@ import { User } from '../models/user';
 import { Route_Stock } from './stock';
 import { Route_Order, Route_OrderItem } from './order';
 import { Route_Dashboard } from './dashboard';
+import { Route_Offer, Route_OfferItem } from './offer';
 
 describe('Route Tests', () => {
   
@@ -14,6 +15,7 @@ describe('Route Tests', () => {
     const prisma = new PrismaClient()
     await prisma.User.deleteMany({ where: { username: { startsWith: "rt-rtest_" } } })    //d clear user data
     await prisma.Order.deleteMany({ where: { code_1: "RT-RTEST" }})                       //d clear order data
+    await prisma.Offer.deleteMany({ where: { code_1: "RT-RTEST" }})                       //d clear offer data
     await prisma.Current.deleteMany({ where: { name: { startsWith: "RT-RTEST" } } })      //d clear current data
     await prisma.Stock.deleteMany({ where: { name: { startsWith: "RT-RTEST" } } })        //d clear stock data
 
@@ -348,7 +350,7 @@ describe('Route Tests', () => {
 
   });
 
-
+  //* Dashboard Route Tests
   test('Dashboard', async () => {
 
     let fresp = new FakeResp()
@@ -356,6 +358,95 @@ describe('Route Tests', () => {
 
     let dashboard_resp = await dashb_route.methods.GET(fresp, fresp.login())
     expect(dashboard_resp.status).toBe(200)
+
+  });
+
+  //* Offer & OfferItem Route Tests
+  test('Offer & OfferItems', async () => {
+    let fresp = new FakeResp()
+    let stock_route = new Route_Stock()
+    let offer_route = new Route_Offer()
+    let offeritem_route = new Route_OfferItem()
+
+    //-- Create a stock
+    
+    let stock = {
+      name: "RT-RTEST" + (new Date()).valueOf().toString().substring(5)
+    }
+
+    fresp = new FakeResp()
+    let postresp = await stock_route.methods.POST(fresp, fresp.login(), stock)
+    expect(postresp.status).toBe(200)
+    stock.id = postresp.json.Data.id
+
+    //-- Create an offer
+
+    let offer = {
+      "unregistered_current": {
+        "name": "TESTER UNREG CURRENT",
+        "mail": "test@gmail.com",
+        "phone": "5550000000"
+      },
+      "order_source": "TEST",
+      "invoiced": false,
+      "printed": false,
+      "total_fee": 100.45,
+      "code_1": "RT-RTEST",
+      "code_2": "B",
+      "code_3": "C",
+      "code_4": "D",
+      "items": [
+          {
+              "row": 1,
+              "stock_id": stock.id,
+              "unit": "AD",
+              "amount": 24.5,
+              "price": 4.10,
+              "tax_rate": 0.18,
+              "description": "Test item"
+          }
+      ]
+    }
+
+    fresp = new FakeResp()
+    let offer_resp = await offer_route.methods.POST(fresp, fresp.login(), offer)
+    expect(offer_resp.status).toBe(200)
+
+    //-- Update the offer
+
+    let offer_id = offer_resp.json.Data.id
+    offer.total_fee = offer_resp.json.Data.details.total_fee
+    offer.items = offer_resp.json.Data.items.map(r => ({...r.details}))
+    delete offer.registry_username
+    delete offer.registry_date
+
+    for (let i of offer.items) {
+      delete i.registry_date,
+      delete i.registry_username
+    }
+
+    offer.items.push({
+      "row": 2,
+      "stock_id": stock.id,
+      "unit": "AD",
+      "amount": 3,
+      "price": 14.10,
+      "tax_rate": 0.18,
+      "description": "Test item 2"
+    })
+
+    fresp = new FakeResp()
+    let offerup_resp = await offer_route.methods.PUT(fresp, fresp.login(), {id: offer_id, data: offer})
+    expect(offerup_resp.status).toBe(200)
+
+    //todo OfferItem tests
+
+    //-- Remove the offer
+
+    fresp = new FakeResp()
+    let offerdel_resp = await offer_route.methods.DELETE(fresp, fresp.login(), {id: offer_id})
+    expect(offerdel_resp.status).toBe(200)
+    
 
   });
 
