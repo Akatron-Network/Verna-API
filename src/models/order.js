@@ -214,7 +214,7 @@ export class Order {
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
-    if (!query.select || !query.include) query.include = {items: true}
+    if (!query.select && !query.include) query.include = {items: true}
 
     let resps = await prisma.Order.findMany(query)
     return resps.map(r => new Order(r.id, r))

@@ -5,6 +5,7 @@ import { Globals } from '../libraries/globals';
 import { User } from '../models/user';
 import { Route_Stock } from './stock';
 import { Route_Order, Route_OrderItem } from './order';
+import { Route_Dashboard } from './dashboard';
 
 describe('Route Tests', () => {
   
@@ -346,6 +347,18 @@ describe('Route Tests', () => {
     
 
   });
+
+
+  test('Dashboard', async () => {
+
+    let fresp = new FakeResp()
+    let dashb_route = new Route_Dashboard()
+
+    let dashboard_resp = await dashb_route.methods.GET(fresp, fresp.login())
+    expect(dashboard_resp.status).toBe(200)
+
+  });
+
 
 });
 

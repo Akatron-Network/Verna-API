@@ -176,6 +176,7 @@ export class Task {
         state: "Tamamlandı",
         previous_step_id: (this.details.current_step_id !== null ? this.details.current_step_id : undefined),
         current_step_id: null,
+        finish_date: new Date(),
         logs: { create: [log] }
       },
       include: {
@@ -335,7 +336,7 @@ export class Task {
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
-    if (!query.select || !query.include) {
+    if (!query.select && !query.include) {
       query.include = {
         task_steps: true,
         previous_step: true,
