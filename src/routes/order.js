@@ -161,3 +161,35 @@ export class Route_OrderItem extends Route {
   }
 
 }
+
+
+export class Route_OrderTrack extends Route {
+  constructor() {
+    //* Register the route info
+    super('/ordertrack', 'OrderTrack', 'Track orders from outside authentication')
+
+    //* Register methods and permissions
+    this.setMethod('GET', this.get)
+  }
+
+  async get (res, user, body = {}) {
+    if (!body.token_key) throw new Error('Token key (token_key) not found')
+
+    let order = await Order.getByToken(body.token_key)
+
+    for (let i of order.details.items) {
+      i.price = undefined
+      i.tax_rate = undefined
+      i.stock.buy_price = undefined
+      i.stock.sell_price = undefined
+    }
+
+    order.details.total_fee = undefined
+    order.details.current = {
+      name: order.details.current.name,
+      current_type: order.details.current.current_type
+    }
+
+    return Response.success(res, order)
+  }
+}

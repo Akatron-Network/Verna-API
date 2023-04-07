@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import * as dotenv from 'dotenv'
 import { validate } from '../libraries/validation.js'
+import { randStr } from '../libraries/misc.js';
 import { 
   orderItem_create_schema,
   orderItem_get_schema,
@@ -152,11 +153,23 @@ export class Order {
       if (control_data !== null) throw new Error('Order id is not empty')
     }
 
+    let token_key = "RT-Order-" + randStr(parseInt(process.env.ORDER_TOKEN_LENGTH), false)
+
+    let token_control_data = await prisma.Order.findUnique({ where: { token_key }})
+    while (token_control_data !== null) {
+      token_key = "RT-Order_" + randStr(parseInt(process.env.TOKEN_LENGTH))
+      token_control_data = await prisma.Order.findUnique({ where: { token_key }})
+    }
+
+    let current_control_data = await prisma.Current.findUnique({ where: { id: new_order.current_id}})
+    if (current_control_data === null) throw new Error('Current not found')
+
     new_order.registry_date = new Date()
 
     let cresp = await prisma.Order.create({
       data: {
-        ...new_order, 
+        ...new_order,
+        token_key,
         items: undefined,
         debt_current_act: {
           create: {
@@ -204,6 +217,15 @@ export class Order {
     await order.init()
     await order.calculateFee()
     return order
+  }
+
+  //* Get an Order by Token Key
+  static async getByToken (token_key) {
+    let order_data = await prisma.Order.findUnique({ 
+      where: { token_key }, 
+      include: {items: { include: {stock: true} }, task: true, current:true}
+    })
+    return new Order(order_data.id, order_data)
   }
 
   //* Get Order with query

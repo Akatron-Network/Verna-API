@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+//-- RedTape Database Scheme
+
 
 generator client {
   provider = "prisma-client-js"
@@ -180,6 +180,8 @@ model Order {
   code_2                String?
   code_3                String?
   code_4                String?
+
+  token_key             String?     @unique
 
   debt_current_act      CurrentActivity?  @relation(name: "debt")
   credit_current_act    CurrentActivity?  @relation(name: "credit")
