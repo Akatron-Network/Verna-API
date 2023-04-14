@@ -7,17 +7,23 @@ import { Globals } from './libraries/globals.js'
 import { morganMiddleware } from './middlewares/morgan.middleware.js'
 import { logger } from './libraries/logger.js'
 import cors from 'cors'
-import { Task } from './models/task.js'
 dotenv.config()
 
+var host = process.env.APP_HOST
+var port = process.env.APP_PORT
+
+for (let i in process.argv) {
+  if (process.argv[i] === '--host') host = process.argv[parseInt(i)+1]
+  if (process.argv[i] === '--port') port = process.argv[parseInt(i)+1]
+}
 
 const app = express()
 app.use(morganMiddleware)
 app.use(cors())
 
-var server = app.listen(parseInt(process.env.APP_PORT), function () {
+var server = app.listen(parseInt(port), host, function () {
   registerAllRoutes(app);
-  logger.info('Server listening on: :' + parseInt(process.env.APP_PORT))
+  logger.info('Server listening on: ' + host + ':' + port)
 
 })
 
@@ -30,42 +36,3 @@ process.on('uncaughtException', function (err) {
 Globals.auth_tokens['RT-Token_Admin'] = new User('admin', {admin: true})
 
 
-
-
-async function test() {
-  let task_details = {
-    order_id: 31,
-    description: "Test Görevi",
-    assigned_username: "admin",
-    task_steps: [
-      {
-        row: 1,
-        name: "İlk İşlem",
-        responsible_username: "admin",
-        planned_finish_date: "2023-02-10T00:00:00Z"
-      },
-      {
-        row: 2,
-        name: "İkinci İşlem",
-        responsible_username: "admin",
-        planned_finish_date: "2023-02-10T00:00:00Z"
-      }
-    ]
-  }
-
-  // console.log(await Task.create(task_details));
-
-  // let task = await Task.get(12)
-
-  // await task.update({
-  //   description: "Test Görevi Güncelleme"
-  // })
-
-  // console.log(task)
-
-  // await task.complateStep({complate_description: "Tamam"})
-
-  // console.log(task);
-}
-
-test()

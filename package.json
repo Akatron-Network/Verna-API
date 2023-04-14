@@ -1,17 +1,24 @@
 {
   "name": "redtape-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "src/main.js",
   "type": "module",
   "scripts": {
     "test": "jest",
-    "start": "cd src && babel-node main.js"
+    "start": "cd src && babel-node main.js",
+    "convert": "npx babel src -d dist",
+    "build": "npm run convert && pkg ./dist/main.js -o dist-pkg/RedTapeAPI"
   },
   "jest": {
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     }
+  },
+  "pkg": {
+    "options": [
+      "experimental-modules"
+    ]
   },
   "author": "Akatron Network",
   "license": "ISC",
@@ -32,5 +39,9 @@
     "morgan": "^1.10.0",
     "prisma": "^4.9.0",
     "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.21.0",
+    "babel-core": "^7.0.0-bridge.0"
   }
 }
