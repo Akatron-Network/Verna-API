@@ -78,6 +78,7 @@ out
 .nuxt
 dist
 dist-pkg
+dist-public
 
 # Gatsby files
 .cache/

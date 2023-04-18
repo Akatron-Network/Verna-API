@@ -8,7 +8,8 @@
     "test": "jest",
     "start": "cd src && babel-node main.js",
     "convert": "npx babel src -d dist",
-    "build": "npm run convert && pkg ./dist/main.js -o dist-pkg/RedTapeAPI"
+    "package": "pkg ./dist/main.js -o dist-public/RedTape-API --public-packages \"*\"",
+    "build": "npm run convert && npm run package && ROBOCOPY .\\ .\\dist-public\\ .env"
   },
   "jest": {
     "transform": {
@@ -16,9 +17,8 @@
     }
   },
   "pkg": {
-    "options": [
-      "experimental-modules"
-    ]
+    "options": ["experimental-modules"],
+    "assets": ["node_modules/.prisma/client/*.node"]
   },
   "author": "Akatron Network",
   "license": "ISC",
