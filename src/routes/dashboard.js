@@ -1,5 +1,5 @@
 import { Response } from "../libraries/response.js";
-import { CurrentActivity } from "../models/current.js";
+import { Current, CurrentActivity } from "../models/current.js";
 import { Order, OrderItem } from "../models/order.js";
 import { Task } from "../models/task.js";
 import { Route } from "./route.js";
@@ -26,7 +26,8 @@ export class Route_Dashboard extends Route {
       sales_data_month: (await CurrentActivity.getMany({
         where: { balance: { gt: 0 } },
         select: { registry_date: true, balance: true }
-      })).map(r => {r = r.details; r.cumulative_balance = undefined; return r})
+      })).map(r => {r = r.details; r.cumulative_balance = undefined; return r}),
+      current_final_balances: (await Current.getFinalBalances())
     }
 
     return Response.success(res, content, Route.generateMeta(res.req))

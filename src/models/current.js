@@ -115,6 +115,36 @@ export class Current {
     return resp['_count']
   }
 
+  static async getFinalBalances(extra_query = {}) {
+    delete extra_query['include']
+    let resp = await prisma.CurrentActivity.groupBy({
+      by: ['current_id'],
+      _sum: {
+        balance: true
+      },
+      orderBy: {
+        _sum: {
+          balance: "desc"
+        }
+      },
+      having: {
+        balance: {
+          _sum: {
+            not: 0,
+          },
+        },
+      },
+    })
+
+    for (let r of resp) {
+      r.current = await Current.get(r.current_id)
+
+      r.balance = r._sum.balance
+      delete r._sum
+    }
+
+    return resp
+  }
 }
 
 
