@@ -22,7 +22,7 @@ export class Route_Dashboard extends Route {
 
     // let monthly_total_sales = await prisma.$queryRaw`SELECT (EXTRACT(MONTH FROM date)) AS month, (EXTRACT(YEAR FROM date)) AS year, SUM(balance) as balance FROM "CurrentActivity" WHERE balance > 0 GROUP BY (EXTRACT(MONTH FROM date)), (EXTRACT(YEAR FROM date)) ORDER BY (EXTRACT(YEAR FROM date)), (EXTRACT(MONTH FROM date))`
 
-    let total_sales = await prisma.$queryRaw`SELECT date, balance FROM "CurrentActivity"`
+    let total_sales = await prisma.$queryRaw`SELECT (EXTRACT(YEAR FROM date)) AS year, (EXTRACT(MONTH FROM date)) AS month, (EXTRACT(DAY FROM date)) AS day, sum(total_fee) FROM "Order" GROUP BY EXTRACT(DAY FROM date), EXTRACT(MONTH FROM date), EXTRACT(YEAR FROM date)`
 
     let content = {
       active_task_count: await Task.count({ where: { state: "Aktif" } }),
