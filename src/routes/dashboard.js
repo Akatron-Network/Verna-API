@@ -20,7 +20,9 @@ export class Route_Dashboard extends Route {
 
   async get (res, user, body = {}) {
 
-    let monthly_total_sales = await prisma.$queryRaw`SELECT (EXTRACT(MONTH FROM date)) AS month, (EXTRACT(YEAR FROM date)) AS year, SUM(balance) as balance FROM "CurrentActivity" WHERE balance > 0 GROUP BY (EXTRACT(MONTH FROM date)), (EXTRACT(YEAR FROM date)) ORDER BY (EXTRACT(YEAR FROM date)), (EXTRACT(MONTH FROM date))`
+    // let monthly_total_sales = await prisma.$queryRaw`SELECT (EXTRACT(MONTH FROM date)) AS month, (EXTRACT(YEAR FROM date)) AS year, SUM(balance) as balance FROM "CurrentActivity" WHERE balance > 0 GROUP BY (EXTRACT(MONTH FROM date)), (EXTRACT(YEAR FROM date)) ORDER BY (EXTRACT(YEAR FROM date)), (EXTRACT(MONTH FROM date))`
+
+    let total_sales = await prisma.$queryRaw`SELECT date, balance FROM "CurrentActivity"`
 
     let content = {
       active_task_count: await Task.count({ where: { state: "Aktif" } }),
@@ -28,7 +30,7 @@ export class Route_Dashboard extends Route {
       overdue_task_count: await Task.count({ where: { current_step: { planned_finish_date: { lt: new Date() } }, state: "Aktif" } }),
       complated_order_count_month: await Task.count({ where: { finish_date: { gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }}}),
       active_tasks: await Task.getMany({ where: { state: "Aktif", closed: false }}),
-      sales_data_month: monthly_total_sales,
+      sales_data_month: total_sales,
       current_final_balances: (await Current.getFinalBalances())
     }
 
