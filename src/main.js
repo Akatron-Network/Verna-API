@@ -31,8 +31,23 @@ process.on('uncaughtException', function (err) {
   logger.error('uncaughtException: ' + err.stack)
 })
 
+async function test() {
+
+  let usr = await User.create({
+    username: 'admin2',
+    password: '12345678',
+    company_code: 'AKATRON2'
+  })
+
+  console.log(usr);
+
+}
+
+// test()
+
+
 //* Tester admin debug token
 //! dont forget to delete before production
-Globals.auth_tokens['RT-Token_Admin'] = new User('admin', {admin: true})
+Globals.auth_tokens['RT-Token_Admin'] = new User('AKATRON', 'admin', {admin: true})
 
 

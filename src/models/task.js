@@ -18,8 +18,9 @@ export class Task {
 
   //* Manual construction
   //! not effects the database, use create or get
-  constructor(id, details) {
+  constructor(company_code, id, details) {
     this.id = id
+    this.company_code = company_code
     if (details) this.details = details
   }
 
@@ -36,7 +37,7 @@ export class Task {
         order: { include: { items: true } }
       }
     })
-    if (this.details === null) throw new Error('Task not found: ' + this.id)
+    if (this.details === null || this.company_code !== this.details.company_code) throw new Error('Task not found: ' + this.id)
     return this;
   }
 
@@ -86,7 +87,8 @@ export class Task {
     let log = {
       explanation: this.details.current_step.row + ". adım tamamlandı",     //. log explanation
       registry_date: new Date(),                                            //. log date
-      registry_username: details.registry_username                          //. log registry
+      registry_username: details.registry_username,                         //. log registry
+      company_code: this.company_code
     }
 
     let upres = await prisma.Task.update({                            //d update task with new step status
@@ -135,7 +137,8 @@ export class Task {
     let log = {
       explanation: this.details.previous_step.row + ". adıma geri dönüldü. " + details.description,
       registry_date: new Date(),
-      registry_username: details.registry_username
+      registry_username: details.registry_username,
+      company_code: this.company_code
     }
 
     let upres = await prisma.Task.update({
@@ -167,7 +170,8 @@ export class Task {
   async complateTask () {
     let log = {
       explanation: "Görev tamamlandı.",
-      registry_date: new Date()
+      registry_date: new Date(),
+      company_code: this.company_code
     }
     let upres = await prisma.Task.update({
       where: { id: this.id },
@@ -199,7 +203,8 @@ export class Task {
     let log = {
       explanation: "Görev iptal edildi. " + details.description,
       registry_date: new Date(),
-      registry_username: details.registry_username
+      registry_username: details.registry_username,
+      company_code: this.company_code
     }
     let upres = await prisma.Task.update({
       where: { id: this.id },
@@ -228,7 +233,8 @@ export class Task {
     let log = {
       explanation: "Görev tekrar açıldı. " + details.description,
       registry_date: new Date(),
-      registry_username: details.registry_username
+      registry_username: details.registry_username,
+      company_code: this.company_code
     }
     let upres = await prisma.Task.update({
       where: { id: this.id },
@@ -264,7 +270,7 @@ export class Task {
 
   //* Create new Task
   //r Returns Task object with steps
-  static async create (details) {
+  static async create (company_code, details) {
     validate(details, task_create_schema)
 
     let control_order = await prisma.Task.findUnique({             //d control the order has a task
@@ -285,14 +291,17 @@ export class Task {
     let log = {
       explanation: "Görev oluşturuldu",                           //. log explanation
       registry_date: new Date(),                                  //. log date
-      registry_username: details.registry_username                //. log registry
+      registry_username: details.registry_username,               //. log registry
+      company_code
     }
 
     let n_task = await prisma.Task.create({                       //d create task record with steps and log
       data: {
         ...details, 
-        task_steps: { create: steps }, 
-        logs: { create: [log]} },
+        task_steps: { create: steps.map(s => ({...s, company_code})) }, 
+        logs: { create: [log] },
+        company_code,
+      },
       include: { task_steps: true, logs: true, order: { include: { items: true } } }
     })
 
@@ -313,16 +322,16 @@ export class Task {
     n_task.next_step = (steps.length > 1) ? n_task.task_steps[1] : null
     n_task.previous_step = null
     
-    return new Task(n_task.id, n_task)                            //r return Task object
+    return new Task(company_code, n_task.id, n_task)                            //r return Task object
 
   }
 
   //* Get a Task by id
   //r Returns Task object
-  static async get (id) {
+  static async get (company_code, id) {
     validate(id, task_get_schema)
 
-    let task = new Task(id)
+    let task = new Task(company_code, id)
     await task.init()
 
     return task
@@ -330,7 +339,7 @@ export class Task {
   
   //* Get Tasks with query
   //r Returns array of Task objects
-  static async getMany (query, pagination = true) {
+  static async getMany (company_code, query, pagination = true) {
     if (pagination) {
       if (!query.skip) query.skip = 0
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
@@ -347,8 +356,11 @@ export class Task {
       }
     }
 
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
+
     let resps = await prisma.Task.findMany(query)
-    return resps.map(r => new Task(r.id, r))
+    return resps.map(r => new Task(company_code, r.id, r))
   }
 
   
@@ -356,8 +368,11 @@ export class Task {
 
   //* Get count of results
   //r Return integer
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
     delete extra_query['include']
+
     let resp = await prisma.Task.aggregate({
       _count: true,
       ...extra_query

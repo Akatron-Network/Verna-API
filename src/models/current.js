@@ -18,8 +18,9 @@ export class Current {
   
   //* Manual construction
   //! not effects the database, use create or get
-  constructor(id, current_details) {
+  constructor(company_code, id, current_details) {
     this.id = id
+    this.company_code = company_code
     if (current_details) this.details = current_details
   }
 
@@ -28,7 +29,7 @@ export class Current {
     this.details = await prisma.Current.findUnique({
       where: { id: this.id }
     })
-    if (this.details === null) throw new Error('current ' + this.id + ' not found')  //r if cant get details give error
+    if (this.details === null || this.company_code !== this.details.company_code) throw new Error('current ' + this.id + ' not found')  //r if cant get details give error
   }
 
   //* Get Details of Current
@@ -65,29 +66,22 @@ export class Current {
 
   //* Create new Current with details
   //r Returns Current object
-  static async create(current_details) {
+  static async create(company_code, current_details) {
     validate(current_details, current_create_schema)
-
-    if (current_details.id) {
-      let last_current = await prisma.Current.findUnique({
-        where: { id: current_details.id }
-      })
-      if (last_current !== null) throw new Error('Current id is not empty')
-    }
 
     current_details.registry_date = new Date()
 
-    let cresp = await prisma.Current.create({data: current_details})
+    let cresp = await prisma.Current.create({data: {...current_details, company_code}})
 
-    return new Current(cresp.id, cresp)
+    return new Current(company_code, cresp.id, cresp)
   }
 
   //* Get a Current by Id
   //r Returns Current Object
-  static async get(id) {
+  static async get(company_code, id) {
     validate(id, current_get_schema)
 
-    let current = new Current(id)
+    let current = new Current(company_code, id)
     await current.initDetails()
 
     return current
@@ -95,17 +89,23 @@ export class Current {
 
   //* Get currents with query
   //r Returns array of Current objects
-  static async getMany(query = {}) {
+  static async getMany(company_code, query = {}) {
     if (!query.skip) query.skip = 0
     if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
 
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
+
     let resps = await prisma.Current.findMany(query)
-    return resps.map(r => new Current(r.id, r))
+    return resps.map(r => new Current(company_code, r.id, r))
   }
 
   //-- Static util methods
 
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
+
     delete extra_query['include']
     let resp = await prisma.Current.aggregate({
       _count: true,
@@ -115,7 +115,7 @@ export class Current {
     return resp['_count']
   }
 
-  static async getFinalBalances(extra_query = {}) {
+  static async getFinalBalances(company_code, extra_query = {}) {
     delete extra_query['include']
     let resp = await prisma.CurrentActivity.groupBy({
       by: ['current_id'],
@@ -134,10 +134,11 @@ export class Current {
           },
         },
       },
+      where: { company_code }
     })
 
     for (let r of resp) {
-      r.current = await Current.get(r.current_id)
+      r.current = await Current.get(company_code, r.current_id)
 
       r.balance = r._sum.balance
       delete r._sum
@@ -154,17 +155,18 @@ export class CurrentActivity {
 
   //* Manual construction
   //! not effects the database, use create or get
-  constructor(id, act_details) {
+  constructor(company_code, id, act_details) {
     this.id = id
+    this.company_code = company_code
     if (act_details) this.details = act_details
   }
 
   //* Initiate Details
   async initDetails() {
     this.details = await prisma.CurrentActivity.findUnique({
-      where: { id: this.id }
+      where: { id: this.id}
     })
-    if (this.details === null) throw new Error('Current activity ' + this.id + ' not found')
+    if (this.details === null || this.company_code !== this.details.company_code) throw new Error('Current activity ' + this.id + ' not found')
   }
 
   //* Get Details of CurrentActivity
@@ -201,30 +203,23 @@ export class CurrentActivity {
 
   //* Create new Current with details
   //r Returns Current object
-  static async create(details) {
+  static async create(company_code, details) {
     validate(details, current_activity_create_schema)
-
-    if (details.id) {
-      let last_act = await prisma.CurrentActivity.findUnique({
-        where: { id: details.id }
-      })
-      if (last_act !== null) throw new Error('CurrentActivity id is not empty')
-    }
 
     details.registry_date = new Date()
     if (!details.expiry_date) details.expiry_date = new Date()
     if (!details.date) details.date = new Date()
 
-    let cresp = await prisma.CurrentActivity.create({data: details})
-    return new CurrentActivity(cresp.id, cresp)
+    let cresp = await prisma.CurrentActivity.create({data: {...details, company_code}})
+    return new CurrentActivity(company_code, cresp.id, cresp)
   }
 
   //* Get a CurrentActivity by Id
   //r Returns CurrentActivity object
-  static async get(id) {
+  static async get(company_code, id) {
     validate(id, current_activity_get_schema)
 
-    let curr_act = new CurrentActivity(id)
+    let curr_act = new CurrentActivity(company_code, id)
     await curr_act.initDetails()
 
     return curr_act
@@ -232,7 +227,7 @@ export class CurrentActivity {
 
   //* Get CurrentActivities with query
   //r Returns array of CurrentActivity objects
-  static async getMany(query = {}, pagination = true) {
+  static async getMany(company_code, query = {}, pagination = true) {
     if (pagination) {
       if (!query.skip) query.skip = 0
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
@@ -240,6 +235,9 @@ export class CurrentActivity {
 
     if (!query.orderBy) query.orderBy = []
     query.orderBy = [...query.orderBy, {date: "asc"}, {id: "asc"}]
+
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
 
     let resps = await prisma.CurrentActivity.findMany(query)
 
@@ -264,14 +262,17 @@ export class CurrentActivity {
       resps[ri].cumulative_balance = resps[parseInt(ri)-1].cumulative_balance + resps[ri].balance
     }
 
-    return resps.map((r) => new CurrentActivity(r.id, r))
+    return resps.map((r) => new CurrentActivity(company_code, r.id, r))
   }
 
   //-- Static util methods
 
   //* Get count of results
   //r Return integer
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
+
     delete extra_query['include']
     let resp = await prisma.CurrentActivity.aggregate({
       _count: true,

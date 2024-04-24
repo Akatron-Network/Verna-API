@@ -15,8 +15,9 @@ export class Stock {
 
   //* Manual construction
   //! not effects the database, use create or get
-  constructor(id, details) {
+  constructor(company_code, id, details) {
     this.id = id
+    this.company_code = company_code
     if (details) this.details = details
   }
 
@@ -25,7 +26,7 @@ export class Stock {
     this.details = await prisma.Stock.findUnique({
       where: { id: this.id }
     })
-    if (this.details === null) throw new Error('stock ' + this.id + ' not found')  //r if cant get details give error
+    if (this.details === null || this.company_code !== this.details.company_code) throw new Error('stock ' + this.id + ' not found')  //r if cant get details give error
   }
 
   //* Get Details of Stock
@@ -62,28 +63,21 @@ export class Stock {
 
   //* Create new Stock with details
   //r Returns Stock object
-  static async create (details = {}) {
+  static async create (company_code, details = {}) {
     validate(details, stock_create_schema)
-
-    if (details.id) {
-      let last_stock = await prisma.Stock.findUnique({
-        where: { id: details.id }
-      })
-      if (last_stock !== null) throw new Error('Stock id is not empty')
-    }
 
     details.registry_date = new Date()
 
-    let cresp = await prisma.Stock.create({data: details})
+    let cresp = await prisma.Stock.create({data: {...details, company_code}})
     return new Stock(cresp.id, cresp)
   }
 
   //* Get a Stock by Id
   //r Returns Stock object
-  static async get(id) {
+  static async get(company_code, id) {
     validate(id, stock_get_schema)
 
-    let stock = new Stock(id)
+    let stock = new Stock(company_code, id)
     await stock.initDetails()
 
     return stock
@@ -91,22 +85,28 @@ export class Stock {
 
   //* Get Stocks with query
   //r Returns array of Stock objects
-  static async getMany(query = {}, pagination = true) {
+  static async getMany(company_code, query = {}, pagination = true) {
     if (pagination) {
       if (!query.skip) query.skip = 0
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
+
     let resps = await prisma.Stock.findMany(query)
-    return resps.map(r => new Stock(r.id, r))
+    return resps.map(r => new Stock(company_code, r.id, r))
   }
 
   //-- Static util methods
 
   //* Get count of results
   //r Return integer
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
     delete extra_query['include']
+
     let resp = await prisma.Stock.aggregate({
       _count: true,
       ...extra_query

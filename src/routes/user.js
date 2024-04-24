@@ -23,7 +23,7 @@ export class Route_User extends Route {
   async get (res, user, body) {
     if (body.username) {
       
-      let usr = await User.get(body.username)
+      let usr = await User.get(user.user_details.company_code, body.username)
       return Response.success(res, usr, {Meta: Route.generateMeta(res.req)})
     }
 
@@ -33,10 +33,10 @@ export class Route_User extends Route {
     if (body.skip) body.query.skip = parseInt(body.skip)
     if (body.take) body.query.take = parseInt(body.take)
 
-    let users = await User.getMany(body.query)
+    let users = await User.getMany(user.user_details.company_code, body.query)
 
     let meta = {
-      total: await User.count(body.query),
+      total: await User.count(user.user_details.company_code, body.query),
       showing: users.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -52,7 +52,7 @@ export class Route_User extends Route {
 
     body.register_ip = res.req.ip.replace(/::ffff:/, '')
 
-    let usr = await User.create(body)
+    let usr = await User.create(user.user_details.company_code, body)
     
     return Response.success(res, usr, {Meta: Route.generateMeta(res.req)})
   }
@@ -61,7 +61,7 @@ export class Route_User extends Route {
   async put (res, user, body) {
     if (!body || !body.username || !body.data) throw new Error('Body cannot be empty')
 
-    let usr = await User.get(body.username)
+    let usr = await User.get(user.user_details.company_code, body.username)
     usr = await usr.update({...body.data})
     
     return Response.success(res, usr, {Meta: Route.generateMeta(res.req)})
@@ -71,7 +71,7 @@ export class Route_User extends Route {
   async del (res, user, body) {
     if (!body || !body.username) throw new Error('Body cannot be empty')
 
-    let usr = await User.get(body.username)
+    let usr = await User.get(user.user_details.company_code, body.username)
     let remresp = await usr.removeUser()
 
     return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})

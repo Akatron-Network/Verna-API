@@ -4,7 +4,7 @@
 export var order_create_schema = {
   type: "object",
   properties: {
-    id                : { type: "integer" },
+    // id                : { type: "integer" },
     current_id        : { type: "integer" },
     date              : { type: "string", format: "date-time" },
     delivery_date     : { type: "string", format: "date-time" },
@@ -53,7 +53,7 @@ export var order_update_schema = {
 export var orderItem_create_schema = {
   type: "object",
   properties: {
-    id                : { type: "integer" },
+    // id                : { type: "integer" },
     row               : { type: "integer" },
     order_id          : { type: "integer" },
     stock_id          : { type: "integer" },

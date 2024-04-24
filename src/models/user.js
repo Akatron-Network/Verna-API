@@ -13,8 +13,9 @@ export class User {
 
   //* Manual construction
   //! not effects the database, use create or login
-  constructor(username, user_details) {
+  constructor(company_code, username, user_details) {
     this.username = username.toLowerCase()      //. username to lover case
+    this.company_code = company_code
     if (user_details) {                         //. if given details save it
       this.user_details = user_details
       delete this.user_details['password']
@@ -26,7 +27,7 @@ export class User {
     this.user_details = await prisma.User.findUnique(             //d get details from db
       { where: { username: this.username } }
     )
-    if (this.user_details === null) throw new Error('user ' + this.username + ' not found')  //r if cant get details give error
+    if (this.user_details === null || this.company_code !== this.user_details.company_code) throw new Error('user ' + this.username + ' not found')  //r if cant get details give error
   }
 
   //* Get Details of user
@@ -91,7 +92,7 @@ export class User {
 
   //* Create new user
   //r Returns User
-  static async create(user_details) {
+  static async create(company_code, user_details) {
     validate(user_details, user_register_schema)                        //. validate input schema
 
     user_details.displayname = user_details.username                    //. set displayname
@@ -108,9 +109,9 @@ export class User {
     )
     if (control_resp !== null) throw new Error('User already exists')   //r give error if user exists
 
-    await prisma.User.create({data: user_details})                      //d create user in db
+    await prisma.User.create({data: {...user_details, company_code}})                      //d create user in db
 
-    let user = new User(user_details.username, user_details)            //. create User object
+    let user = new User(company_code, user_details.username, user_details)            //. create User object
     await user.generateToken()                                          //. generate token
 
     return user                                                         //r return the User object
@@ -140,7 +141,7 @@ export class User {
       }
     })
 
-    let user = new User(u_details.username, u_details)              //. create an User object
+    let user = new User(u_details.company_code, u_details.username, u_details)              //. create an User object
     await user.generateToken()                                      //. generate the token
 
     return user                                                     //r return the User object
@@ -162,10 +163,10 @@ export class User {
   
   //* Get a Stock by Id
   //r Returns Stock object
-  static async get(id) {
+  static async get(company_code, id) {
     validate(id, user_get_schema)
 
-    let user = new User(id)
+    let user = new User(company_code, id)
     await user.initDetails()
 
     return user
@@ -173,22 +174,28 @@ export class User {
 
   //* Get Stocks with query
   //r Returns array of Stock objects
-  static async getMany(query = {}, pagination = true) {
+  static async getMany(company_code, query = {}, pagination = true) {
     if (pagination) {
       if (!query.skip) query.skip = 0
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
+
     let resps = await prisma.User.findMany(query)
-    return resps.map(r => new User(r.username, r))
+    return resps.map(r => new User(company_code, r.username, r))
   }
 
   //-- Static util methods
 
   //* Get count of results
   //r Return integer
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
     delete extra_query['include']
+
     let resp = await prisma.User.aggregate({
       _count: true,
       ...extra_query

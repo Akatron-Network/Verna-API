@@ -1,7 +1,6 @@
 export var current_create_schema = {
   type: "object",
   properties: {
-    id: { type: "integer" },
     name: { type: "string", minLength: 2, maxLength: 50 },
     current_type: { type: "string", maxLength: 50 },
     address: { type: "string", maxLength: 500 },
@@ -59,7 +58,6 @@ export var current_update_schema = {
 export var current_activity_create_schema = {
   type: "object",
   properties: {
-    id: { type: "integer" },
     current_id: { type: "integer" },
     date: { type: "string", format: "date-time" },
     expiry_date: { type: "string", format: "date-time" },

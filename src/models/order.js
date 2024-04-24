@@ -19,8 +19,9 @@ export class Order {
 
   //* Manual construction
   //! not effects the database, use create or get
-  constructor (id, details, items) {
+  constructor (company_code, id, details, items) {
     this.id = id
+    this.company_code = company_code
     if (details) this.details = details
     if (items) this.items = items
   }
@@ -36,12 +37,12 @@ export class Order {
     this.details = await prisma.Order.findUnique({
       where: { id: this.id }
     })
-    if (this.details === null) throw new Error('Order ' + this.id + ' not found')
+    if (this.details === null || this.company_code !== this.details.company_code) throw new Error('Order ' + this.id + ' not found')
   }
 
   //* Initiate items
   async initItems () {
-    this.items = await OrderItem.getMany({
+    this.items = await OrderItem.getMany(this.company_code, {
       where: { order_id: this.id }
     }, false)
   }
@@ -113,9 +114,10 @@ export class Order {
         delete item['registry_username']
         delete item['update_date']
         delete item['update_username']
+        delete item['company_code']
         await old_items[old_item_ids.indexOf(itemid)].update({...item})
       }
-      else await OrderItem.create({
+      else await OrderItem.create(this.company_code, {
         ...item, 
         order_id: this.id,
         registry_username: this.details.registry_username
@@ -145,23 +147,18 @@ export class Order {
 
   //* Create new Order with details and items
   //r Returns Order object
-  static async create (new_order) {
+  static async create (company_code, new_order) {
     validate(new_order, order_create_schema)
-
-    if (new_order.id) {
-      let control_data = await prisma.Order.findUnique({ where: { id: this.id } })
-      if (control_data !== null) throw new Error('Order id is not empty')
-    }
 
     let token_key = "RT-Order-" + randStr(parseInt(process.env.ORDER_TOKEN_LENGTH), false)
 
-    let token_control_data = await prisma.Order.findUnique({ where: { token_key }})
+    let token_control_data = await prisma.order.findUnique({ where: { token_key }})
     while (token_control_data !== null) {
       token_key = "RT-Order_" + randStr(parseInt(process.env.TOKEN_LENGTH))
-      token_control_data = await prisma.Order.findUnique({ where: { token_key }})
+      token_control_data = await prisma.order.findUnique({ where: { token_key }})
     }
 
-    let current_control_data = await prisma.Current.findUnique({ where: { id: new_order.current_id}})
+    let current_control_data = await prisma.current.findFirstOrThrow({ where: { id: new_order.current_id, company_code}})
     if (current_control_data === null) throw new Error('Current not found')
 
     new_order.registry_date = new Date()
@@ -171,6 +168,7 @@ export class Order {
         ...new_order,
         token_key,
         items: undefined,
+        company_code,
         debt_current_act: {
           create: {
             current_id: new_order.current_id,
@@ -179,18 +177,19 @@ export class Order {
             description: "Sipariş",
             balance: new_order.total_fee,
             registry_date: new Date(),
-            registry_username: new_order.registry_username
+            registry_username: new_order.registry_username,
+            company_code,
           }
         }
       },
       include: {debt_current_act: true}
     })
-    let order = new Order(cresp.id, cresp)
+    let order = new Order(company_code, cresp.id, cresp)
     order.items = []
 
     try {
       for (let item of new_order.items) {
-        let ordItem = await OrderItem.create({
+        let ordItem = await OrderItem.create(company_code, {
           ...item, 
           order_id: order.id, 
           registry_username: order.details.registry_username
@@ -210,10 +209,10 @@ export class Order {
 
   //* Get a Order by Id
   //r Returns Order object
-  static async get (id) {
+  static async get (company_code, id) {
     validate(id, order_get_schema)
 
-    let order = new Order(id)
+    let order = new Order(company_code, id)
     await order.init()
     await order.calculateFee()
     return order
@@ -230,7 +229,7 @@ export class Order {
 
   //* Get Order with query
   //r Returns array of Order objects
-  static async getMany (query = {}, pagination = true) {
+  static async getMany (company_code, query = {}, pagination = true) {
     if (pagination) {
       if (!query.skip) query.skip = 0
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
@@ -238,16 +237,22 @@ export class Order {
 
     if (!query.select && !query.include) query.include = {items: true, credit_current_act: true, debt_current_act: true}
 
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
+
     let resps = await prisma.Order.findMany(query)
-    return resps.map(r => new Order(r.id, r))
+    return resps.map(r => new Order(company_code, r.id, r))
   }
   
   //-- Static util methods
 
   //* Get count of results
   //r Returns integer
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
     delete extra_query['include']
+
     let resp = await prisma.Order.aggregate({
       _count: true,
       ...extra_query
@@ -265,8 +270,9 @@ export class OrderItem {
 
   //* Manual construction
   //! not effects the database, use create or get
-  constructor (id, details) {
+  constructor (company_code, id, details) {
     this.id = id
+    this.company_code = company_code
     if (details) this.details = details
   }
 
@@ -275,7 +281,7 @@ export class OrderItem {
     this.details = await prisma.OrderItem.findUnique({
       where: { id: this.id }
     })
-    if (this.details === null) throw new Error('orderItem ' + this.id + ' not found')
+    if (this.details === null || this.company_code !== this.details.company_code) throw new Error('orderItem ' + this.id + ' not found')
   }
 
   //* Get Details of OrderItem
@@ -310,17 +316,17 @@ export class OrderItem {
   //r Returns Order object
   async getOrder() {
     if (!this.details) await this.initDetails()
-    return Order.get(this.details.order_id)
+    return Order.get(this.company_code, this.details.order_id)
   }
 
   //-- Static Construct Methods
 
   //* Get a OrderItem by Id
   //r Returns OrderItem object
-  static async get (id) {
+  static async get (company_code, id) {
     validate(id, orderItem_get_schema)
 
-    let orderItem = new OrderItem(id)
+    let orderItem = new OrderItem(company_code, id)
     await orderItem.initDetails()
 
     return orderItem
@@ -328,40 +334,39 @@ export class OrderItem {
 
   //* Create new OrderItem with details
   //r Returns OrderItem object
-  static async create (details) {
+  static async create (company_code, details) {
     validate(details, orderItem_create_schema)
-
-    if (details.id) {
-      let control_data = await prisma.OrderItem.findUnique({
-        where: { id: details.id }
-      })
-      if (control_data !== null) throw new Error('OrderItem id is not empty')
-    }
 
     details.registry_date = new Date()
 
-    let cresp = await prisma.OrderItem.create({data: details})
-    return new OrderItem(cresp.id, cresp)
+    let cresp = await prisma.OrderItem.create({data: {...details, company_code}})
+    return new OrderItem(company_code, cresp.id, cresp)
   }
 
   //* Get OrderItems with query
   //r Returns array of OrderItem objects
-  static async getMany (query = {}, pagination = true) {
+  static async getMany (company_code, query = {}, pagination = true) {
     if (pagination) {
       if (!query.skip) query.skip = 0
       if (!query.take) query.take = parseInt(process.env.QUERY_LIMIT)
     }
 
+    if (!query.where) query.where = { company_code }
+    else query.where.company_code = company_code
+
     let resps = await prisma.OrderItem.findMany(query)
-    return resps.map(r => new OrderItem(r.id, r))
+    return resps.map(r => new OrderItem(company_code, r.id, r))
   }
 
   //-- Static util methods
 
   //* Get count of results
   //r Returns integer
-  static async count(extra_query = {}) {
+  static async count(company_code, extra_query = {}) {
+    if (!extra_query.where) extra_query.where = { company_code }
+    else extra_query.where.company_code = company_code
     delete extra_query['include']
+
     let resp = await prisma.OrderItem.aggregate({
       _count: true,
       ...extra_query

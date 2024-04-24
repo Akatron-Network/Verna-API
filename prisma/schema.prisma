@@ -24,6 +24,8 @@ model User {
   lastlogin_ip            String?
   old_password            String?
 
+  company_code            String
+
   registered_currents     Current[]
   registered_curr_act     CurrentActivity[]
   registered_stocks       Stock[]
@@ -60,11 +62,12 @@ model Current {
   update_date           DateTime      @default(now())
   update_username       String?
 
+  company_code          String
+
   activities            CurrentActivity[]
   orders                Order[]
   offers                Offer[]
 }
-
 
 model CurrentActivity {
   id                    Int         @id @default(autoincrement())
@@ -85,8 +88,9 @@ model CurrentActivity {
   registry_user         User?       @relation(references: [username], fields: [registry_username])
   update_date           DateTime    @default(now())
   update_username       String?
-}
 
+  company_code          String
+}
 
 model Stock {
   id                    Int         @id @default(autoincrement())
@@ -109,10 +113,11 @@ model Stock {
   update_date           DateTime    @default(now())
   update_username       String?
 
+  company_code          String
+
   orders                OrderItem[]
   offers                OfferItem[]
 }
-
 
 model Offer {
   id                    Int         @id @default(autoincrement())
@@ -139,10 +144,11 @@ model Offer {
   update_date           DateTime    @default(now())
   update_username       String?
 
+  company_code          String
+
   items                 OfferItem[]
   order                 Order?
 }
-
 
 model OfferItem {
   id                    Int         @id @default(autoincrement())
@@ -159,8 +165,9 @@ model OfferItem {
 
   registry_date         DateTime    @default(now())
   registry_username     String?
+  
+  company_code          String
 }
-
 
 model Order {
   id                    Int         @id @default(autoincrement())
@@ -192,10 +199,11 @@ model Order {
   update_date           DateTime    @default(now())
   update_username       String?
 
+  company_code          String
+  
   items                 OrderItem[]
   task                  Task?
 }
-
 
 model OrderItem {
   id                    Int         @id @default(autoincrement())
@@ -212,8 +220,9 @@ model OrderItem {
 
   registry_date         DateTime    @default(now())
   registry_username     String?
-}
 
+  company_code          String
+}
 
 model Task {
   id                    Int                 @id @default(autoincrement())
@@ -244,8 +253,9 @@ model Task {
   registry_user         User?               @relation(references: [username], fields: [registry_username], name: "registered_tasks")
   update_date           DateTime            @default(now())
   update_username       String?
+  
+  company_code          String
 }
-
 
 model TaskStep {
   id                    Int                 @id @default(autoincrement())
@@ -260,12 +270,13 @@ model TaskStep {
   start_date            DateTime?
   complate_date         DateTime?
 
+  company_code          String
+
   previous_step_to      Task?               @relation("previous_step")
   current_step_to       Task?               @relation("current_step")
   next_step_to          Task?               @relation("next_step")
   responsible_user      User?               @relation(references: [username], fields: [responsible_username])
 }
-
 
 model TaskLog {
   id                    Int                 @id @default(autoincrement())
@@ -274,4 +285,6 @@ model TaskLog {
   explanation           String?
   registry_date         DateTime            @default(now())
   registry_username     String?
+  
+  company_code          String
 }

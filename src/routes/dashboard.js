@@ -25,15 +25,17 @@ export class Route_Dashboard extends Route {
     let sales_daily = await prisma.$queryRaw`SELECT (EXTRACT(YEAR FROM date)) AS year, (EXTRACT(MONTH FROM date)) AS month, (EXTRACT(DAY FROM date)) AS day, sum(total_fee) FROM "Order" GROUP BY EXTRACT(DAY FROM date), EXTRACT(MONTH FROM date), EXTRACT(YEAR FROM date)`
     let sales_monthly = await prisma.$queryRaw`SELECT (EXTRACT(YEAR FROM date)) AS year, (EXTRACT(MONTH FROM date)) AS month, sum(total_fee) FROM "Order" GROUP BY EXTRACT(MONTH FROM date), EXTRACT(YEAR FROM date)`
 
+    let company_code = user.user_details.company_code
+
     let content = {
-      active_task_count: await Task.count({ where: { state: "Aktif" } }),
-      not_created_task_count: await Order.count({ where: { task: null } }),
-      overdue_task_count: await Task.count({ where: { current_step: { planned_finish_date: { lt: new Date() } }, state: "Aktif" } }),
-      complated_order_count_month: await Task.count({ where: { finish_date: { gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }}}),
-      active_tasks: await Task.getMany({ where: { state: "Aktif", closed: false }}),
+      active_task_count: await Task.count(company_code, { where: { state: "Aktif" } }),
+      not_created_task_count: await Order.count(company_code, { where: { task: null } }),
+      overdue_task_count: await Task.count(company_code, { where: { current_step: { planned_finish_date: { lt: new Date() } }, state: "Aktif" } }),
+      complated_order_count_month: await Task.count(company_code, { where: { finish_date: { gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }}}),
+      active_tasks: await Task.getMany(company_code, { where: { state: "Aktif", closed: false }}),
       sales_daily,
       sales_monthly,
-      current_final_balances: (await Current.getFinalBalances())
+      current_final_balances: (await Current.getFinalBalances(company_code))
     }
 
     return Response.success(res, content, Route.generateMeta(res.req))

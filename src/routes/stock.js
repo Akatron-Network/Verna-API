@@ -26,7 +26,7 @@ export class Route_Stock extends Route {
   async get (res, user, body = {}) {
     if (body.id) {
       
-      let stock = await Stock.get(parseInt(body.id))
+      let stock = await Stock.get(user.user_details.company_code, parseInt(body.id))
       return Response.success(res, stock, {Meta: Route.generateMeta(res.req)})
     }
 
@@ -36,10 +36,10 @@ export class Route_Stock extends Route {
     if (body.skip) body.query.skip = parseInt(body.skip)
     if (body.take) body.query.take = parseInt(body.take)
 
-    let stocks = await Stock.getMany(body.query)
+    let stocks = await Stock.getMany(user.user_details.company_code, body.query)
 
     let meta = {
-      total: await Stock.count(body.query),
+      total: await Stock.count(user.user_details.company_code, body.query),
       showing: stocks.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -55,7 +55,7 @@ export class Route_Stock extends Route {
 
     body.registry_username = user.username
 
-    let stock = await Stock.create(body)
+    let stock = await Stock.create(user.user_details.company_code, body)
     
     return Response.success(res, stock, {Meta: Route.generateMeta(res.req)})
   }
@@ -64,7 +64,7 @@ export class Route_Stock extends Route {
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
 
-    let stock = await Stock.get(body.id)
+    let stock = await Stock.get(user.user_details.company_code, parseInt(body.id))
 
     stock = await stock.update({
       ...body.data,
@@ -78,7 +78,7 @@ export class Route_Stock extends Route {
   async del (res, user, body) {
     if (!body || !body.id) throw new Error('Body cannot be empty')
 
-    let stock = await Stock.get(body.id)
+    let stock = await Stock.get(user.user_details.company_code, body.id)
     let remresp = await stock.remove()
 
     return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})

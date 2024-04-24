@@ -24,7 +24,7 @@ export class Route_Current extends Route {
   //* Show single or multiple Currents
   async get (res, user, body = {}) {
     if (body.id) {
-      let current = await Current.get(parseInt(body.id))
+      let current = await Current.get(user.user_details.company_code, parseInt(body.id))
       return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
     }
     
@@ -34,10 +34,10 @@ export class Route_Current extends Route {
     if (body.skip) body.query.skip = parseInt(body.skip)
     if (body.take) body.query.take = parseInt(body.take)
 
-    let currents = await Current.getMany(body.query)
+    let currents = await Current.getMany(user.user_details.company_code, body.query)
 
     let meta = {
-      total: await Current.count(body.query),
+      total: await Current.count(user.user_details.company_code, body.query),
       showing: currents.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -53,7 +53,7 @@ export class Route_Current extends Route {
 
     body.registry_username = user.username
 
-    let current = await Current.create(body)
+    let current = await Current.create(user.user_details.company_code, body)
 
     return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
   }
@@ -62,7 +62,7 @@ export class Route_Current extends Route {
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
 
-    let current = await Current.get(body.id)
+    let current = await Current.get(user.user_details.company_code, body.id)
 
     current = await current.update({
       ...body.data,
@@ -76,7 +76,7 @@ export class Route_Current extends Route {
   async del (res, user, body) {
     if (!body || !body.id) throw new Error('Body cannot be empty')
 
-    let current = await Current.get(body.id)
+    let current = await Current.get(user.user_details.company_code, body.id)
     let remresp = await current.remove()
 
     return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})
@@ -105,7 +105,7 @@ export class Route_CurrentActivity extends Route {
   //* Show single or multiple CurrentActs
   async get (res, user, body = {}) {
     if (body.id) {
-      let current_act = await CurrentActivity.get(parseInt(body.id))
+      let current_act = await CurrentActivity.get(user.user_details.company_code, parseInt(body.id))
       return Response.success(res, current_act, {Meta: Route.generateMeta(res.req)})
     }
 
@@ -115,10 +115,10 @@ export class Route_CurrentActivity extends Route {
         skip: parseInt(body.skip) || 0,
         take: parseInt(body.take) || parseInt(process.env.QUERY_LIMIT),
       }
-      let current_acts = await CurrentActivity.getMany(q)
+      let current_acts = await CurrentActivity.getMany(user.user_details.company_code, q)
 
       let meta = {
-        total: await CurrentActivity.count(q),
+        total: await CurrentActivity.count(user.user_details.company_code, q),
         showing: current_acts.length,
         skip: q.skip,
         take: q.take,
@@ -136,10 +136,10 @@ export class Route_CurrentActivity extends Route {
     if (body.skip) body.query.skip = parseInt(body.skip)
     if (body.take) body.query.take = parseInt(body.take)
 
-    let current_acts = await CurrentActivity.getMany(body.query)
+    let current_acts = await CurrentActivity.getMany(user.user_details.company_code, body.query)
 
     let meta = {
-      total: await CurrentActivity.count(body.query),
+      total: await CurrentActivity.count(user.user_details.company_code, body.query),
       showing: current_acts.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -157,7 +157,7 @@ export class Route_CurrentActivity extends Route {
 
     body.registry_username = user.username
     
-    let current = await CurrentActivity.create(body)
+    let current = await CurrentActivity.create(user.user_details.company_code, body)
 
     return Response.success(res, current, {Meta: Route.generateMeta(res.req)})
   }
@@ -166,7 +166,7 @@ export class Route_CurrentActivity extends Route {
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
 
-    let current = await CurrentActivity.get(body.id)
+    let current = await CurrentActivity.get(user.user_details.company_code, body.id)
 
     current = await current.update({
       ...body.data,
@@ -180,7 +180,7 @@ export class Route_CurrentActivity extends Route {
   async del (res, user, body) {
     if (!body || !body.id) throw new Error('Body cannot be empty')
 
-    let current = await CurrentActivity.get(body.id)
+    let current = await CurrentActivity.get(user.user_details.company_code, body.id)
     let remresp = await current.remove()
 
     return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})

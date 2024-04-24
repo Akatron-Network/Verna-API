@@ -26,7 +26,7 @@ export class Route_Task extends Route {
     if (body.id) {
       //todo control permission
 
-      let task = await Task.get(parseInt(body.id))
+      let task = await Task.get(user.user_details.company_code, parseInt(body.id))
       return Response.success(res, task, {Meta: Route.generateMeta(res.req)})
     }
     if (body.query) {
@@ -37,10 +37,10 @@ export class Route_Task extends Route {
       if (body.skip) body.query.skip = parseInt(body.skip)
       if (body.take) body.query.take = parseInt(body.take)
 
-      let tasks = await Task.getMany(body.query)
+      let tasks = await Task.getMany(user.user_details.company_code, body.query)
 
       let meta = {
-        total: await Task.count(body.query),
+        total: await Task.count(user.user_details.company_code, body.query),
         showing: tasks.length,
         skip: body.query.skip || 0,
         take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -57,10 +57,10 @@ export class Route_Task extends Route {
       q.where =  { assigned_username: user.username }
       if (body.state) q.where.state = body.state
 
-      let tasks = await Task.getMany(q)
+      let tasks = await Task.getMany(user.user_details.company_code, q)
 
       let meta = {
-        total: await Task.count(q),
+        total: await Task.count(user.user_details.company_code, q),
         showing: tasks.length,
         skip: q.skip || 0,
         take: q.take || parseInt(process.env.QUERY_LIMIT),
@@ -80,7 +80,7 @@ export class Route_Task extends Route {
     //* Create new Task
     if (operation === 'create') {
       data.registry_username = user.username
-      let task = await Task.create(data)
+      let task = await Task.create(user.user_details.company_code, data)
 
       return Response.success(res, task, {Meta: Route.generateMeta(res.req)})
     }
@@ -89,7 +89,7 @@ export class Route_Task extends Route {
     else if (operation === 'complateStep') {
       if (!Object.keys(data).includes('id')) throw new Error('Id not found in data')
       
-      let task = await Task.get(data.id)
+      let task = await Task.get(user.user_details.company_code, data.id)
       await task.complateStep({
         registry_username: user.username, 
         complate_description: data.complate_description
@@ -102,7 +102,7 @@ export class Route_Task extends Route {
     else if (operation === 'cancelStep') {
       if (!Object.keys(data).includes('id')) throw new Error('Id not found in data')
       
-      let task = await Task.get(data.id)
+      let task = await Task.get(user.user_details.company_code, data.id)
       await task.cancelStep({
         registry_username: user.username, 
         description: data.description
@@ -125,7 +125,7 @@ export class Route_Task extends Route {
     else if (operation === 'reOpenTask') {
       if (!Object.keys(data).includes('id')) throw new Error('Id not found in data')
 
-      let task = await Task.get(data.id)
+      let task = await Task.get(user.user_details.company_code, data.id)
       await task.reOpenTask({
         registry_username: user.username, 
         description: data.description
@@ -138,7 +138,7 @@ export class Route_Task extends Route {
     else if (operation === 'cancelTask') {
       if (!Object.keys(data).includes('id')) throw new Error('Id not found in data')
       
-      let task = await Task.get(data.id)
+      let task = await Task.get(user.user_details.company_code, data.id)
       await task.cancelTask({
         registry_username: user.username, 
         description: data.description
@@ -155,7 +155,7 @@ export class Route_Task extends Route {
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
 
-    let task = await Task.get(body.id)
+    let task = await Task.get(user.user_details.company_code, body.id)
 
     task = await task.update({
       ...body.data,
@@ -169,7 +169,7 @@ export class Route_Task extends Route {
   async del (res, user, body) {
     if (!body || !body.id) throw new Error('Body cannot be empty')
 
-    let task = await Task.get(body.id)
+    let task = await Task.get(user.user_details.company_code, body.id)
     let remresp = await task.remove()
 
     return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})

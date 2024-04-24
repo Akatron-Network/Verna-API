@@ -1,7 +1,7 @@
 export var stock_create_schema = {
   type: "object",
   properties: {
-    id                : { type: "integer" },
+    // id                : { type: "integer" },
     name              : { type: "string", minLength: 2, maxLength: 50 },
     material          : { type: "string", maxLength: 50 },
     product_group     : { type: "string", maxLength: 50 },

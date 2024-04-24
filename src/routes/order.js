@@ -22,7 +22,7 @@ export class Route_Order extends Route {
   //* Show orders
   async get (res, user, body = {}) {
     if (body.id) {
-      let order = await Order.get(parseInt(body.id))
+      let order = await Order.get(user.user_details.company_code, parseInt(body.id))
       return Response.success(res, order, {Meta: Route.generateMeta(res.req)})
     }
     
@@ -32,10 +32,10 @@ export class Route_Order extends Route {
     if (body.skip) body.query.skip = parseInt(body.skip)
     if (body.take) body.query.take = parseInt(body.take)
 
-    let orders = await Order.getMany(body.query)
+    let orders = await Order.getMany(user.user_details.company_code, body.query)
 
     let meta = {
-      total: await Order.count(body.query),
+      total: await Order.count(user.user_details.company_code, body.query),
       showing: orders.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -51,7 +51,7 @@ export class Route_Order extends Route {
 
     body.registry_username = user.username
 
-    let order = await Order.create(body)
+    let order = await Order.create(user.user_details.company_code, body)
 
     return Response.success(res, order, {Meta: Route.generateMeta(res.req)})
   }
@@ -60,7 +60,7 @@ export class Route_Order extends Route {
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
 
-    let order = await Order.get(body.id)
+    let order = await Order.get(user.user_details.company_code, body.id)
 
     order = await order.update({
       ...body.data,
@@ -74,7 +74,7 @@ export class Route_Order extends Route {
   async del (res, user, body) {
     if (!body || !body.id) throw new Error('Body cannot be empty')
 
-    let order = await Order.get(body.id)
+    let order = await Order.get(user.user_details.company_code, body.id)
     let remresp = await order.remove()
 
     return Response.success(res, remresp, {Meta: Route.generateMeta(res.req)})
@@ -102,7 +102,7 @@ export class Route_OrderItem extends Route {
   //* Show order items
   async get (res, user, body = {}) {
     if (body.id) {
-      let orderitem = await OrderItem.get(parseInt(body.id))
+      let orderitem = await OrderItem.get(user.user_details.company_code, parseInt(body.id))
       return Response.success(res, orderitem, {Meta: Route.generateMeta(res.req)})
     }
     
@@ -112,10 +112,10 @@ export class Route_OrderItem extends Route {
     if (body.skip) body.query.skip = parseInt(body.skip)
     if (body.take) body.query.take = parseInt(body.take)
 
-    let orderitems = await OrderItem.getMany(body.query)
+    let orderitems = await OrderItem.getMany(user.user_details.company_code, body.query)
 
     let meta = {
-      total: await OrderItem.count(body.query),
+      total: await OrderItem.count(user.user_details.company_code, body.query),
       showing: orderitems.length,
       skip: body.query.skip || 0,
       take: body.query.take || parseInt(process.env.QUERY_LIMIT),
@@ -131,7 +131,7 @@ export class Route_OrderItem extends Route {
 
     body.registry_username = user.username
 
-    let orderItem = await OrderItem.create(body)
+    let orderItem = await OrderItem.create(user.user_details.company_code, body)
     await (await orderItem.getOrder()).calculateFee()
 
     return Response.success(res, orderItem, {Meta: Route.generateMeta(res.req)})
@@ -141,7 +141,7 @@ export class Route_OrderItem extends Route {
   async put (res, user, body) {
     if (!body || !body.id || !body.data) throw new Error('Body cannot be empty')
 
-    let orderItem = await OrderItem.get(body.id)
+    let orderItem = await OrderItem.get(user.user_details.company_code, body.id)
     orderItem = await orderItem.update({...body.data})
     (await orderItem.getOrder()).calculateFee()
 
@@ -152,7 +152,7 @@ export class Route_OrderItem extends Route {
   async del (res, user, body) {
     if (!body || !body.id) throw new Error('Body cannot be empty')
 
-    let orderItem = await OrderItem.get(body.id)
+    let orderItem = await OrderItem.get(user.user_details.company_code, body.id)
     let order = await orderItem.getOrder()
     let remresp = await orderItem.remove()
     await order.calculateFee()
