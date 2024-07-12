@@ -33,10 +33,10 @@ process.on('uncaughtException', function (err) {
 
 async function test() {
 
-  let usr = await User.create({
-    username: 'admin2',
-    password: '12345678',
-    company_code: 'AKATRON2'
+  let usr = await User.create('NEFTAT', {
+    username: 'yahya',
+    password: '12345678a',
+    admin: true,
   })
 
   console.log(usr);
